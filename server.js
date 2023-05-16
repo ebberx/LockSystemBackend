@@ -45,6 +45,15 @@ app.post('/api/UserCreate', async (req, res) => {
         res.status(418).json("Wrong arugments supplied.")
         return
     }    
+
+    // Check if account with email already exists
+    const foundUser = await User.find({email: user.email})
+    if(foundUser.length != 0) {
+        res.status(418).json("User already exists.")
+        console.log("User already exists: " + user.email)
+        return
+    }
+
     // Debug
     console.log("added user to db: ")
     console.log(user)
@@ -53,7 +62,7 @@ app.post('/api/UserCreate', async (req, res) => {
     user.verified = false;
 
     await user.save();
-    res.status(200).json("OK");
+    res.status(200).json("OK")
 });
 
 app.post('/api/UserLogin', async (req, res) => {
@@ -66,10 +75,16 @@ app.post('/api/UserLogin', async (req, res) => {
     console.log("UserLogin:")
     console.log(loginData)
 
-    await User.find({email: loginData.email})
+    const user = await User.find({email: loginData.email})
         .then((user) => {
-            const token = GenerateAccessToken(loginData.email, loginData.password);
-            res.json(token);
+            if(user.length == 0) {
+                res.status(418).json("No user exists with those details.")
+                return
+            }
+            else if(user.length >= 1) {
+                const token = GenerateAccessToken(loginData.email, loginData.password);
+                res.json(token);
+            }
         });
        
 });
@@ -151,7 +166,7 @@ function CheckTokenExists(token) {
     for (let i = 0; i < tokens.length; i++) {
         if(token === tokens[i]) {
             // Debug
-            console.log("Token used for access: ")
+            console.log("Token already exists: ")
             console.log(token);
 
             return true
