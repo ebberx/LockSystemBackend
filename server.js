@@ -51,7 +51,7 @@ app.post('/api/UserCreate', async (req, res) => {
 
     // Set verified to false by default.
     user.verified = false;
-    
+
     await user.save();
     res.status(200).json("OK");
 });
@@ -104,6 +104,10 @@ app.post('/api/UserAccessTest', async (req, res) => {
         res.status(200).json("OK - User has access.")
     else
         res.status(418).json("Token does not have access.")
+});
+
+app.get('/api/CheckIfOnline', async (req, res) => {
+    res.status(200).json("OK - Online.")
 });
 
 // Start the Express server
