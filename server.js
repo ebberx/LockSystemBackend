@@ -69,6 +69,7 @@ app.post('/api/UserLogin', async (req, res) => {
     let loginData = req.body
     if(loginData.email == null || loginData.password == null) {
         res.status(418).json("Wrong arugments supplied.")
+        console.log("Login failure.")
         return
     }
     // Debug
@@ -78,16 +79,13 @@ app.post('/api/UserLogin', async (req, res) => {
 
     const user = await User.find({email: loginData.email});
 
-    if(user.length == 0) {
-        res.status(418).json("No user exists with those details.")
-        return
-    }
-    else if(user.length >= 1 && user[0].password == loginData.password) {
+    if(user.length >= 1 && user[0].password == loginData.password) {
         const token = GenerateAccessToken(loginData.email, loginData.password);
         res.status(200).json(token);
+        console.log("Login success.")
         return
     }
-
+    console.log("Login failure.")
     res.status(400).json("Invalid credentials.");
 });
 
