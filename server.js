@@ -75,20 +75,20 @@ app.post('/api/UserLogin', async (req, res) => {
     console.log("UserLogin:")
     console.log(loginData)
 
-    const user = await User.find({email: loginData.email})
-        .then((user) => {
-            if(user.length == 0) {
-                res.status(418).json("No user exists with those details.")
-                return
-            }
-            else if(user.length >= 1 && user.password == loginData.password) {
-                const token = GenerateAccessToken(loginData.email, loginData.password);
-                res.json(token);
-                return
-            }
-        });
+
+    const user = await User.find({email: loginData.email});
+
+    if(user.length == 0) {
+        res.status(418).json("No user exists with those details.")
+        return
+    }
+    else if(user.length >= 1 && user[0].password == loginData.password) {
+        const token = GenerateAccessToken(loginData.email, loginData.password);
+        res.status(200).json(token);
+        return
+    }
+
     res.status(400).json("Invalid credentials.");
-       
 });
 
 app.post('/api/UserLogout', async (req, res) => {
