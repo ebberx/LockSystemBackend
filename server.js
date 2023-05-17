@@ -84,8 +84,10 @@ app.post('/api/UserLogin', async (req, res) => {
             else if(user.length >= 1 && user.password == loginData.password) {
                 const token = GenerateAccessToken(loginData.email, loginData.password);
                 res.json(token);
+                return
             }
         });
+    res.status(400).json("Invalid credentials.");
        
 });
 
