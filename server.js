@@ -81,7 +81,7 @@ app.post('/api/UserLogin', async (req, res) => {
                 res.status(418).json("No user exists with those details.")
                 return
             }
-            else if(user.length >= 1) {
+            else if(user.length >= 1 && user.password == loginData.password) {
                 const token = GenerateAccessToken(loginData.email, loginData.password);
                 res.json(token);
             }
