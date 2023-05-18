@@ -2,12 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { ObjectId, Decimal128 } = require('mongodb');
 
-// Application variables
+/* Application variables */
 let tokens = []
 let tokenSize = 0;
 
-// Express
+/* Express */
 const app = express();
 const port = 3000;
 
@@ -19,7 +20,7 @@ app.use(cors({
 
 app.use(bodyParser.json());
 
-// Mongo / Mongoose
+/* Mongo / Mongoose */
 const mongoURL = 'mongodb://51.75.69.121:5000/lockDB';
 const mongoOptions = { useNewUrlParser: true, useUnifiedTopology: true };
 
@@ -27,24 +28,42 @@ mongoose.connect(mongoURL, mongoOptions)
   .then(() => console.log('MongoDB connection established successfully'))
   .catch(err => console.error('Failed to connect MongoDB:', err));  
 
-// Schemas
+/* Schemas */
 const Schema = mongoose.Schema;
 const userSchema = new Schema({
     email: String,
+    name: String,
     password: String,
+    rfid: String,
+    face_encoding: [Decimal128],
     verified: Boolean,
+    user_access: [ObjectId]
 });
 
 const User = mongoose.model('User', userSchema);
 
-// Routes
+//////////////////
+/* Routes BEGIN */
+//////////////////
+//
+//  UserCreate
+//
 app.post('/api/UserCreate', async (req, res) => {
     let user = new User(req.body);
-    
+
+    // Debug
+    console.log("\n[UserCreate]: ")
+    console.log(user)
+
+    // If email and password is not supplied
     if(user.email == null || user.password == null) {
         res.status(418).json("Wrong arugments supplied.")
+        console.log("Wrong arugments supplied.")
         return
-    }    
+    }
+
+    // Convert to lowercase
+    user.email = user.email.toLowerCase();
 
     // Check if account with email already exists
     const foundUser = await User.find({email: user.email})
@@ -54,76 +73,203 @@ app.post('/api/UserCreate', async (req, res) => {
         return
     }
 
-    // Debug
-    console.log("added user to db: ")
-    console.log(user)
-
     // Set verified to false by default.
     user.verified = false;
 
+    // Create user
     await user.save();
     res.status(200).json("OK")
 });
 
-app.post('/api/UserLogin', async (req, res) => {
-    let loginData = req.body
-    if(loginData.email == null || loginData.password == null) {
+//
+//  UserCreateFromDevice
+//
+app.post('/api/UserCreateFromDevice', async (req, res) => {
+    let userData = req.body;
+
+    // Debug
+    console.log("\n[UserCreateFromDevice]: ")
+    console.log(userData)
+
+    // If email and password is not supplied
+    if(userData.email == null || userData.password == null || userData.rfid == null) {
         res.status(418).json("Wrong arugments supplied.")
-        console.log("Login failure.")
+        console.log("Wrong arugments supplied.")
+        return
+    }    
+
+    // Convert to lowercase
+    userData.email = userData.email.toLowerCase();
+
+    // Check if account with email already exists
+    const foundUser = await User.find({email: userData.email})
+    if(foundUser.length != 0) {
+        res.status(418).json("User already exists.")
+        console.log("User already exists: " + userData.email)
         return
     }
+
+    // Create the user from the userData
+    const user = new User(userData);
+
+    // Set verified to false by default.
+    user.verified = false;
+
+    // Create user
+    await user.save();
+    res.status(200).json("OK")
+});
+
+//
+//  UserLogin
+//
+app.post('/api/UserLogin', async (req, res) => {
+    let loginData = req.body
+    
     // Debug
-    console.log("UserLogin:")
+    console.log("\n[UserLogin]:")
     console.log(loginData)
 
+    // if no email and password is supplied
+    if(loginData.email == null || loginData.password == null) {
+        res.status(418).json("Wrong arugments supplied.")
+        console.log("Wrong arugments supplied.")
+        return
+    }
 
+    // Convert to lowercase
+    loginData.email = loginData.email.toLowerCase();
+
+    // Query for the email in mongodb
     const user = await User.find({email: loginData.email});
 
+    // 1 or more result && first results password equals supplied password
     if(user.length >= 1 && user[0].password == loginData.password) {
         const token = GenerateAccessToken(loginData.email, loginData.password);
         res.status(200).json(token);
         console.log("Login success.")
         return
     }
-    console.log("Login failure.")
+
+    console.log("Invalid credentials.")
     res.status(400).json("Invalid credentials.");
 });
 
+//
+//  UserUpdate
+//
+app.post('/api/UserUpdate', async (req, res) => {
+    let updateData = req.body
+
+    // Debug
+    console.log("\n[UserUpdate]:")
+    console.log(updateData)
+
+    // if no email and password is supplied
+    if(updateData.email == null && (updateData.new_email == null || updateData.new_password == null))  {
+        res.status(418).json("Wrong arugments supplied.")
+        console.log("Wrong arugments supplied.")
+        return
+    }
+
+    // Convert to lowercase
+    updateData.email = updateData.email.toLowerCase();
+
+    // Query for the email in mongodb
+    const user = await User.find({email: updateData.email});
+
+    if(user.length == 0) {
+        res.status(418).json("Couldn't find user in database.")
+        console.log("Couldn't find user in database.")
+        return
+    }
+
+    // Update data
+    if(updateData.new_email != null)
+        user[0].email = updateData.new_email;
+    if(updateData.new_password != null)
+        user[0].password = updateData.new_password;
+    if(updateData.new_rfid != null)
+        user[0].rfid = updateData.new_rfid;
+    
+    // Create user
+    await user[0].save();
+    res.status(200).json("OK")
+});
+
+//
+//  UserLogout
+//
 app.post('/api/UserLogout', async (req, res) => {
-    let loginData = req.body
-    if(loginData.token == null) {
+    let bodyData = req.body
+    
+    // Debug
+    console.log("\n[UserLogout]:")
+    console.log(bodyData)
+
+    // If no token is supplied
+    if(bodyData.token == null) {
         res.status(418).json("Wrong arugment supplied.")
+        console.log("Wrong arugment supplied.")
         return
     }
-    // Debug
-    console.log("UserLogout:")
-    console.log(loginData)
 
-    if(RevokeAccessToken(loginData.token))
+    // Do logout and handle result
+    if(RevokeAccessToken(bodyData.token)) {
+        console.log("OK")
         res.status(200).json("OK")
-    else
+        return
+    } else {
+        console.log("Token does not exist")
         res.status(418).json("Token does not exist")
-});
-
-app.post('/api/UserAccessTest', async (req, res) => {
-    let loginData = req.body
-    if(loginData.token == null) {
-        res.status(418).json("Wrong arugment supplied.")
         return
     }
-    // Debug
-    console.log("UserAccessTest:")
-    console.log(loginData)
-
-    if(CheckTokenExists(loginData.token))
-        res.status(200).json("OK - User has access.")
-    else
-        res.status(418).json("Token does not have access.")
 });
 
+//
+//  DebugGetTokens
+//
+app.get('/api/DebugGetTokens', async (req, res) => {
+    res.status(200).json(tokens)
+});
+
+//
+//  UserAccessTest
+//
+app.post('/api/UserAccessTest', async (req, res) => {
+    let bodyData = req.body
+    
+    // Debug
+    console.log("\n[UserAccessTest]:")
+    console.log(bodyData)
+    
+    // If no token is supplied
+    if(bodyData.token == null) {
+        res.status(418).json("Wrong arugment supplied.")
+        console.log("Wrong arugment supplied.")
+        return
+    }
+
+    if(CheckTokenExists(bodyData.token)) {
+        res.status(200).json("OK - User has access.")
+        console.log("OK - User has access.")
+        return
+    } else {
+        res.status(418).json("Token does not have access.")
+        console.log("Token does not have access.")
+        return
+    }
+});
+
+//
+//  CheckIfOnline
+//
 app.get('/api/CheckIfOnline', async (req, res) => {
     res.status(200).json("OK - Online.")
 });
+///////////////
+/* Routes END*/
+///////////////
 
 // Start the Express server
 app.listen(port, () => {
