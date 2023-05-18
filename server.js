@@ -39,8 +39,15 @@ const userSchema = new Schema({
     verified: Boolean,
     user_access: [ObjectId]
 });
+const lockSchema = new Schema({
+    name: String,
+    location: String,
+    active: Boolean,
+    owner: ObjectId
+});
 
 const User = mongoose.model('User', userSchema);
+const Lock = mongoose.model('Lock', lockSchema);
 
 //////////////////
 /* Routes BEGIN */
@@ -57,7 +64,7 @@ app.post('/api/UserCreate', async (req, res) => {
 
     // If email and password is not supplied
     if(user.email == null || user.password == null) {
-        res.status(418).json("Wrong arugments supplied.")
+        res.status(400).json("Wrong arugments supplied.")
         console.log("Wrong arugments supplied.")
         return
     }
@@ -68,7 +75,7 @@ app.post('/api/UserCreate', async (req, res) => {
     // Check if account with email already exists
     const foundUser = await User.find({email: user.email})
     if(foundUser.length != 0) {
-        res.status(418).json("User already exists.")
+        res.status(400).json("User already exists.")
         console.log("User already exists: " + user.email)
         return
     }
@@ -93,7 +100,7 @@ app.post('/api/UserCreateFromDevice', async (req, res) => {
 
     // If email and password is not supplied
     if(userData.email == null || userData.password == null || userData.rfid == null) {
-        res.status(418).json("Wrong arugments supplied.")
+        res.status(400).json("Wrong arugments supplied.")
         console.log("Wrong arugments supplied.")
         return
     }    
@@ -104,7 +111,7 @@ app.post('/api/UserCreateFromDevice', async (req, res) => {
     // Check if account with email already exists
     const foundUser = await User.find({email: userData.email})
     if(foundUser.length != 0) {
-        res.status(418).json("User already exists.")
+        res.status(400).json("User already exists.")
         console.log("User already exists: " + userData.email)
         return
     }
@@ -132,7 +139,7 @@ app.post('/api/UserLogin', async (req, res) => {
 
     // if no email and password is supplied
     if(loginData.email == null || loginData.password == null) {
-        res.status(418).json("Wrong arugments supplied.")
+        res.status(400).json("Wrong arugments supplied.")
         console.log("Wrong arugments supplied.")
         return
     }
@@ -167,7 +174,7 @@ app.post('/api/UserUpdate', async (req, res) => {
 
     // if no email and password is supplied
     if(updateData.email == null && (updateData.new_email == null || updateData.new_password == null))  {
-        res.status(418).json("Wrong arugments supplied.")
+        res.status(400).json("Wrong arugments supplied.")
         console.log("Wrong arugments supplied.")
         return
     }
@@ -179,7 +186,7 @@ app.post('/api/UserUpdate', async (req, res) => {
     const user = await User.find({email: updateData.email});
 
     if(user.length == 0) {
-        res.status(418).json("Couldn't find user in database.")
+        res.status(400).json("Couldn't find user in database.")
         console.log("Couldn't find user in database.")
         return
     }
@@ -209,7 +216,7 @@ app.post('/api/UserLogout', async (req, res) => {
 
     // If no token is supplied
     if(bodyData.token == null) {
-        res.status(418).json("Wrong arugment supplied.")
+        res.status(400).json("Wrong arugment supplied.")
         console.log("Wrong arugment supplied.")
         return
     }
@@ -221,7 +228,7 @@ app.post('/api/UserLogout', async (req, res) => {
         return
     } else {
         console.log("Token does not exist")
-        res.status(418).json("Token does not exist")
+        res.status(400).json("Token does not exist")
         return
     }
 });
@@ -245,7 +252,7 @@ app.post('/api/UserAccessTest', async (req, res) => {
     
     // If no token is supplied
     if(bodyData.token == null) {
-        res.status(418).json("Wrong arugment supplied.")
+        res.status(400).json("Wrong arugment supplied.")
         console.log("Wrong arugment supplied.")
         return
     }
@@ -255,7 +262,7 @@ app.post('/api/UserAccessTest', async (req, res) => {
         console.log("OK - User has access.")
         return
     } else {
-        res.status(418).json("Token does not have access.")
+        res.status(400).json("Token does not have access.")
         console.log("Token does not have access.")
         return
     }
@@ -267,6 +274,42 @@ app.post('/api/UserAccessTest', async (req, res) => {
 app.get('/api/CheckIfOnline', async (req, res) => {
     res.status(200).json("OK - Online.")
 });
+
+//
+//  LockCreate
+//
+app.post('/api/LockCreate', async (req, res) => {
+    const lockData = req.body
+
+    // Debug
+    console.log("\n[LockCreate]:")
+    console.log(lockData)
+
+    // Check if arguments needed are supplied
+    if(lockData.name == null || lockData.location == null || lockData.active == null || lockData.owner == null) {
+        res.status(400).json("Wrong arguements supplied.")
+        console.log("Wrong arguements supplied.")
+        return
+    }
+
+    // Find owner ObjectID by email
+    const user = await User.find({email: lockData.owner});
+    // Check if the user was found in the database
+    if(user.length == 0) {
+        res.status(400).json("Supplied owner does not exist.")
+        console.log("Supplied owner does not exist.")
+        return
+    }
+    // Replace .owner email, with ObjectID
+    lockData.owner = user[0]._id;
+
+    // Create a Lock Schema
+    const lock = new Lock(lockData);
+
+    lock.save();
+    res.status(200).json("OK")
+});
+
 ///////////////
 /* Routes END*/
 ///////////////
