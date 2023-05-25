@@ -4,6 +4,13 @@ const mongoose = require('mongoose');
 const { ObjectId, Decimal128 } = require('mongodb');
 const bodyParser = require('body-parser');
 
+// Timestamps for logging
+require('log-timestamp');
+
+// Create folders for data storage
+var fs = require('fs');
+fs.mkdir("images", {}, (err) => { err === null ? console.log("Created /images directory.") : console.log("Failed to create images/ directory:\n" + err) });
+
 /* Express */
 const app = express();
 const port = 3000;
