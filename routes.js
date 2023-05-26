@@ -127,7 +127,10 @@ module.exports = function(app, Models) {
 
         // Debug
         console.log("\n[UserUpdate]:")
-        console.log(updateData)
+        console.log("email: " + updateData.email)
+        console.log("new email: " + updateData.new_email)
+        console.log("new password:" + updateData.new_password)
+        console.log("new_image_data: " + typeof(updateData.new_image_data))
 
         // if no email and password is supplied
         if(updateData.email == null || !(updateData.new_email != null || updateData.new_password != null || updateData.new_image_data != null || updateData.new_name != null))  {
@@ -239,10 +242,7 @@ module.exports = function(app, Models) {
 
         // Debug
         console.log("\n[UserGetInfo]:")
-        console.log("email: " + bodyData.email)
-        console.log("new email: " + bodyData.new_email)
-        console.log("new password:" + bodyData.new_password)
-        console.log("new_image_data: " + typeof(bodyData.new_image_data))
+        console.log(bodyData)
 
         if(bodyData.token == null) {
             res.status(400).json("Token not supplied.")
