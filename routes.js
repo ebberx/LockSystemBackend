@@ -1,6 +1,7 @@
 
 const { Console } = require('console');
-const Token = require('./token')
+const Token = require('./token');
+const { type } = require('os');
 
 module.exports = function(app, Models) {
     ////////////
@@ -238,7 +239,10 @@ module.exports = function(app, Models) {
 
         // Debug
         console.log("\n[UserGetInfo]:")
-        console.log(bodyData)
+        console.log("email: " + bodyData.email)
+        console.log("new email: " + bodyData.new_email)
+        console.log("new password:" + bodyData.new_password)
+        console.log("new_image_data: " + typeof(bodyData.new_image_data))
 
         if(bodyData.token == null) {
             res.status(400).json("Token not supplied.")
