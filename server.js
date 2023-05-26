@@ -24,6 +24,10 @@ app.use(cors({
     allowedHeaders: '*'
 }));
 
+// Increase payload limit to 50 mb so that we can send big images over HTTP
+app.use(express.json({limit: '50mb'}));
+app.use(express.urlencoded({limit: '50mb'}));
+
 // Parse and reply with body of responses as being json
 app.use(bodyParser.json());
 
