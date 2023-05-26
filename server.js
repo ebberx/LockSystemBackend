@@ -4,6 +4,9 @@ const mongoose = require('mongoose');
 const { ObjectId, Decimal128 } = require('mongodb');
 const bodyParser = require('body-parser');
 
+const http = require("http")
+const ws = require('ws');
+
 // Timestamps for logging
 require('log-timestamp');
 
@@ -59,6 +62,60 @@ Models.Lock = mongoose.model('Lock', lockSchema);
 require("./routes")(app, Models);
 
 // Start the Express server
-app.listen(port, () => {
+const httpServer = app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
 });
+
+////////////////////////
+/// Web Sockets be here
+//////////////////////
+const wss = new ws.Server({ server: httpServer });
+const sockets = new Map();
+
+wss.on('connection', (ws, req) => {
+    const id = get_ws_id(req);
+    sockets.set(id, ws);
+    console.log("Pi: " + id + " connected.");
+    //console.log("connected.");
+
+    ws.on('close', () => {
+        sockets.delete(id);
+        console.log("Pi: " + id + " disconnected.");
+        console.log("disconnected.");
+    })
+})
+
+function get_ws_id(req) {
+    let id = uuid.v4()
+    if (req.headers["lockid"] != undefined) {
+        id = req.headers["lockid"].toString();
+    }
+    return id
+}
+
+function unlock(lockid, message) {
+    if (sockets.get(lockid) && sockets.get(lockid).readyState == 1) {
+        sockets.get(lockid).send(message);
+        return true;
+    }
+    else
+        return false;
+}
+
+// Unlock notification
+app.post('/api/log_event', (req, res) => {
+    const body = req.body;
+    console.log("Unlock notification from Raspberry")
+    res.status(200).json("Yeet thou thy visitors at the door, and close it shut once more.");
+});
+
+// Remote unlock
+app.put('/api/unlock', (req, res) => {
+    const wsrequest = '{"action": "unlock", "args": {"caller": "test api"}}';
+    const id = "123je1mn4567ma82";
+    const result = unlock(id, wsrequest);
+    if (result)
+        return res.status(200).json("Unlocked.")
+    else
+        return res.status(400).json("Lock offline.")
+})
