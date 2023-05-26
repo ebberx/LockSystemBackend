@@ -86,7 +86,7 @@ wss.on('connection', (ws, req) => {
 })
 
 function get_ws_id(req) {
-    let id = uuid.v4()
+    let id = "test";
     if (req.headers["lockid"] != undefined) {
         id = req.headers["lockid"].toString();
     }
