@@ -36,6 +36,9 @@ module.exports = function(app, Models) {
 
         // Set verified to false by default.
         user.verified = false;
+        
+        // Set is_admin to false by default.
+        user.is_admin = false;
 
         // Create user
         await user.save();
@@ -308,6 +311,57 @@ module.exports = function(app, Models) {
         res.status(200).json(replyData)
     });
 
+    //
+    // UserGetAll
+    // (For admins only)
+    //
+    app.post('/api/UserGetAll', async (req, res) => {
+        // Start copy of normal get
+        let bodyData = req.body;
+
+        // Debug
+        console.log("[UserGetAll]:")
+        console.log(bodyData)
+
+        if(bodyData.token == null) {
+            res.status(400).json("Token not supplied.")
+            console.log("Token not supplied.")
+            return
+        }
+
+        const userID = Token.GetUserID(bodyData.token);
+        
+        // Find User in Database
+        const user = await Models.User.find({_id: userID});
+        
+        if(user === null) {
+            console.log("Failed to find user for token: \n" + bodyData.token);
+            res.status(400).json("Failed to find user for token: \n" + bodyData.token)
+            return
+        }
+        // Debug
+        console.log("Found user for token. \nToken:\n" + bodyData.token + "\nUser:\n" + user);
+        // End copy of normal get
+        if (!user.is_admin) {
+            console.log("Non-admin user: " + user.email + ", tried to access all user data.");
+            res.status(403).json("This service requires administrative rights.");
+            return
+        }
+
+        const allUsers = await Models.User.find();
+        allUsers.forEach((item) => {
+            delete item.password;
+            delete item.verified;
+            delete item.photo_path;
+            delete item.encoding_path;
+            delete item.user_access;
+            delete item.is_admin;
+        });
+
+        console.log("Sent all user data to admin.");
+        res.status(200).json(allUsers);
+    });
+
     ////////////////
     /// USER END ///
     ////////////////
@@ -400,6 +454,50 @@ module.exports = function(app, Models) {
         lock.save();
         res.status(200).json("OK")
     });
+
+    //
+    // LockGetAll 
+    // (For admin only)
+    //
+    app.post('/api/LockGetAll', async (req, res) => {
+         // Start copy of normal get
+         let bodyData = req.body;
+
+         // Debug
+         console.log("[UserGetInfo]:")
+         console.log(bodyData)
+ 
+         if(bodyData.token == null) {
+             res.status(400).json("Token not supplied.")
+             console.log("Token not supplied.")
+             return
+         }
+ 
+         const userID = Token.GetUserID(bodyData.token);
+         
+         // Find User in Database
+         const user = await Models.User.find({_id: userID});
+         
+         if(user === null) {
+             console.log("Failed to find user for token: \n" + bodyData.token);
+             res.status(400).json("Failed to find user for token: \n" + bodyData.token)
+             return
+         }
+         // Debug
+         console.log("Found user for token. \nToken:\n" + bodyData.token + "\nUser:\n" + user);
+         // End copy of normal get
+         if (!user.is_admin) {
+             console.log("Non-admin user: " + user.email + ", tried to access all lock data.");
+             res.status(403).json("This service requires administrative rights.");
+             return
+         }
+
+         const allLocks = await Models.Lock.find();
+ 
+         console.log("Sent all lock data to admin.");
+         res.status(200).json(allLocks);
+    });
+
     ////////////////
     /// LOCK END ///
     ////////////////

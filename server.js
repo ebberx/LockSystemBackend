@@ -48,7 +48,8 @@ const userSchema = new Schema({
     verified: Boolean,
     photo_path: String,
     encoding_path: String,
-    user_access: [ObjectId]
+    user_access: [ObjectId],
+    is_admin: Boolean
 });
 const lockSchema = new Schema({
     name: String,
