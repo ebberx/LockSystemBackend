@@ -13,7 +13,7 @@ module.exports = function(app, Models) {
         let user = new Models.User(req.body);
 
         // Debug
-        console.log("\n[UserCreate]: ")
+        console.log("[UserCreate]: ")
         console.log(user)
 
         // If email and password is not supplied
@@ -50,7 +50,7 @@ module.exports = function(app, Models) {
         let userData = req.body;
 
         // Debug
-        console.log("\n[UserCreateFromDevice]: ")
+        console.log("[UserCreateFromDevice]: ")
         console.log(userData)
 
         // If email and password is not supplied
@@ -90,7 +90,7 @@ module.exports = function(app, Models) {
         let loginData = req.body
         
         // Debug
-        console.log("\n[UserLogin]:")
+        console.log("[UserLogin]:")
         console.log(loginData)
 
         // if no email and password is supplied
@@ -125,7 +125,7 @@ module.exports = function(app, Models) {
         let updateData = req.body
 
         // Debug
-        console.log("\n[UserUpdate]:")
+        console.log("[UserUpdate]:")
         console.log("email: " + updateData.email)
         console.log("new_name: " + updateData.name)
         console.log("new email: " + updateData.new_email)
@@ -215,7 +215,7 @@ module.exports = function(app, Models) {
         let bodyData = req.body
         
         // Debug
-        console.log("\n[UserLogout]:")
+        console.log("[UserLogout]:")
         console.log(bodyData)
 
         // If no token is supplied
@@ -245,7 +245,7 @@ module.exports = function(app, Models) {
         let bodyData = req.body;
 
         // Debug
-        console.log("\n[UserGetInfo]:")
+        console.log("[UserGetInfo]:")
         console.log(bodyData)
 
         if(bodyData.token == null) {
@@ -332,7 +332,7 @@ module.exports = function(app, Models) {
         let bodyData = req.body
         
         // Debug
-        console.log("\n[UserAccessTest]:")
+        console.log("[UserAccessTest]:")
         console.log(bodyData)
         
         // If no token is supplied
@@ -373,7 +373,7 @@ module.exports = function(app, Models) {
         const lockData = req.body
 
         // Debug
-        console.log("\n[LockCreate]:")
+        console.log("[LockCreate]:")
         console.log(lockData)
 
         // Check if arguments needed are supplied
