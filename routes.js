@@ -36,6 +36,9 @@ module.exports = function(app, Models) {
 
         // Set verified to false by default.
         user.verified = false;
+        
+        // Set is_admin to false by default.
+        user.is_admin = false;
 
         // Create user
         await user.save();
