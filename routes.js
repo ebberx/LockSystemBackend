@@ -342,7 +342,7 @@ module.exports = function(app, Models) {
         // Debug
         console.log("Found user for token. \nToken:\n" + bodyData.token + "\nUser:\n" + user);
         // End copy of normal get
-        if (!user.is_admin) {
+        if (user.is_admin === false) {
             console.log("Non-admin user: " + user.email + ", tried to access all user data.");
             res.status(403).json("This service requires administrative rights.");
             return
