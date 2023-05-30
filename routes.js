@@ -1,7 +1,6 @@
 
-const { Console } = require('console');
 const Token = require('./token');
-const { type } = require('os');
+const Verify = require('./verification')
 
 module.exports = function(app, Models) {
     ////////////
@@ -128,6 +127,7 @@ module.exports = function(app, Models) {
         // Debug
         console.log("\n[UserUpdate]:")
         console.log("email: " + updateData.email)
+        console.log("new_name: " + updateData.name)
         console.log("new email: " + updateData.new_email)
         console.log("new password:" + updateData.new_password)
         console.log("new_image_data: " + typeof(updateData.new_image_data))
@@ -183,8 +183,12 @@ module.exports = function(app, Models) {
             var filePath =  "images/" + user[0]._id + fileType;
             await fs.writeFile(filePath, buf, () => { 
                 console.log(filePath + " saved to file!"); 
+                
                 // Add to photo_path to user entry
                 user[0].photo_path = filePath; 
+
+                // Generate and add encodings path to database
+                //const encoding = Verify.GenerateEncoding();
             });
         }
         
