@@ -181,7 +181,7 @@ module.exports = function(app, Models) {
             // Image file path: Where the image should be saved
             var imageFilePath =  "images/" + user[0]._id + fileType;
             
-            await fs.writeFile(imageFilePath, buf, async () => { 
+            await fs.writeFile(imageFilePath, buf).then(() => {
                 console.log(imageFilePath + " saved to file!"); 
                 // Add to photo_path to user entry (db)
                 user[0].photo_path = imageFilePath; 
