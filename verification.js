@@ -32,7 +32,7 @@ module.exports = {
             console.log("Output:\n" + output)
 
             // Make sure the output is a number
-            if(!Number.NaN(Number(output))) {
+            if(!Number.isNaN(Number(output))) {
                 return output;    
             }
             return false;
