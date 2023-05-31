@@ -370,7 +370,7 @@ module.exports = function(app, Models) {
         let bodyData = req.body
 
         console.log("[UserVerify]:")
-        console.log(bodyData)
+        //console.log(bodyData)
 
         // Check that the data needed is there
         if(bodyData.email === null && bodyData.image_data === null) {
