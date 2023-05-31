@@ -410,13 +410,13 @@ module.exports = function(app, Models) {
         var buf = Buffer.from(data, 'base64');
 
         // Image file path: Where the image should be saved
-        var imageFilePath =  user[0]._id + "/image" + fileType;
+        var imageFilePath =  user[0]._id + "\\image" + fileType;
 
         await fs.writeFile(imageFilePath, buf, async () => { 
             console.log(imageFilePath + " saved to file!");  
 
             // Encoding file path: Where the python script should save the encoding
-            const tempEncodingPath = user[0]._id + "/encoding" + ".enc";
+            const tempEncodingPath = user[0]._id + "\\encoding" + ".enc";
             
             // Generate encodings and compare
             Verify.GenerateEncoding(imageFilePath, tempEncodingPath);
