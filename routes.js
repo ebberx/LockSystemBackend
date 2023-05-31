@@ -314,12 +314,59 @@ module.exports = function(app, Models) {
         console.log("Sent user info.")
         res.status(200).json(replyData)
     });
-
+    
     //
     // UserGetAll
+    //
+    app.get('/api/UserGetAll', async (req, res) => {
+        console.log("[UserGetAll]:");
+        console.log(JSON.stringify(req.headers));
+
+        const token = req.headers.token;
+
+        if (token === undefined) {
+            res.status(400).json("Token not supplied.");
+            console.log("Token not supplied.");
+            return;
+        }
+        
+        const userID = Token.GetUserID(token);
+        
+        // Find User in Database
+        const user = await Models.User.find({_id: userID});
+        
+        if(user === null) {
+            console.log("Failed to find user for token: \n" + token);
+            res.status(400).json("Failed to find user for token: \n" + token)
+            return
+        }
+        // Debug
+        console.log("Found user for token. \nToken:\n" + token + "\nUser:\n" + JSON.stringify(user));
+
+        if (Token.CheckTokenExists(token) === false) {
+            console.log("User does not have access.");
+            res.status(401).json("User does not have access. Login to use this feature.");
+            return;
+        }
+
+        const allUsers = await Models.User.find();
+        allUsers.forEach((item) => {
+            item.password = undefined;
+            item.verified = undefined;
+            item.photo_path = undefined;
+            item.encoding_path = undefined;
+            item.user_access = undefined;
+            item.is_admin = undefined;
+        });
+
+        res.status(200).json(allUsers);
+    });
+
+    //
+    // UserGetAllAdmin
     // (For admins only)
     //
-    app.post('/api/UserGetAll', async (req, res) => {
+    app.post('/api/UserGetAllAdmin', async (req, res) => {
         // Start copy of normal get
         let bodyData = req.body;
 
@@ -346,7 +393,7 @@ module.exports = function(app, Models) {
         // Debug
         console.log("Found user for token. \nToken:\n" + bodyData.token + "\nUser:\n" + user);
         // End copy of normal get
-        if (user.is_admin === false) {
+        if (user[0].is_admin === false) {
             console.log("Non-admin user: " + user.email + ", tried to access all user data.");
             res.status(403).json("This service requires administrative rights.");
             return
@@ -354,12 +401,7 @@ module.exports = function(app, Models) {
 
         const allUsers = await Models.User.find();
         allUsers.forEach((item) => {
-            delete item.password;
-            delete item.verified;
-            delete item.photo_path;
-            delete item.encoding_path;
-            delete item.user_access;
-            delete item.is_admin;
+            item.password = undefined;
         });
 
         console.log("Sent all user data to admin.");
@@ -460,10 +502,15 @@ module.exports = function(app, Models) {
     //  DebugGetTokens
     //
     app.get('/api/DebugGetTokens', async (req, res) => {
-        if(Token.tokens)
-            res.status(200).json(Token.tokens)
+        // const token = Object.fromEntries(Token.tokenUserMap);
+        // if (token)
+        //     res.status(200).json(token);
+        //
+        // if code below is intended to return tokens, use above fix?
+        if(Token.token)
+            res.status(200).json(Token.token);
         else
-            res.status(200).json("No tokens in server.")
+            res.status(200).json("No tokens in server.");
     });
 
     //
@@ -573,7 +620,7 @@ module.exports = function(app, Models) {
          // Debug
          console.log("Found user for token. \nToken:\n" + bodyData.token + "\nUser:\n" + user);
          // End copy of normal get
-         if (!user.is_admin) {
+         if (user[0].is_admin === false) {
              console.log("Non-admin user: " + user.email + ", tried to access all lock data.");
              res.status(403).json("This service requires administrative rights.");
              return
