@@ -1,4 +1,4 @@
-const { exec } = require("child_process");
+const { execSync } = require("child_process");
 
 const scriptsPath = "python3 ~/FaceVerificationFaceNet/ProjectScripts/";
 const getEncodingScript = "GetEncodingFromImage.py";
