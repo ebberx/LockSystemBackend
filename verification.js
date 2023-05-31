@@ -31,7 +31,11 @@ module.exports = {
             console.log("\"" + command + "\"")
             console.log("Output:\n" + output)
 
-            return output;
+            // Make sure the output is a number
+            if(!Number.NaN(Number(output))) {
+                return output;    
+            }
+            return false;
         }
         catch (err) {
             console.log("Error: " + err)
