@@ -426,7 +426,7 @@ module.exports = function(app, Models) {
             const output = Verify.CompareEncodings(user[0].encoding_path, tempEncodingPath);
 
             if(output !== false) {
-                console.log(output);
+                console.log(Number(output.toString()));
                 
                 // Delete temnp folder after operation
                 execSync("rm -rf " + user[0]._id);
@@ -434,6 +434,7 @@ module.exports = function(app, Models) {
 
         });
         
+        res.status(200).json("OK");
     });
 
     ////////////////
