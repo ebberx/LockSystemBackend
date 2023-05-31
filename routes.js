@@ -346,7 +346,7 @@ module.exports = function(app, Models) {
         // Debug
         console.log("Found user for token. \nToken:\n" + bodyData.token + "\nUser:\n" + user);
         // End copy of normal get
-        if (user.is_admin === false) {
+        if (user[0].is_admin === false) {
             console.log("Non-admin user: " + user.email + ", tried to access all user data.");
             res.status(403).json("This service requires administrative rights.");
             return
@@ -354,12 +354,12 @@ module.exports = function(app, Models) {
 
         const allUsers = await Models.User.find();
         allUsers.forEach((item) => {
-            delete item.password;
-            delete item.verified;
-            delete item.photo_path;
-            delete item.encoding_path;
-            delete item.user_access;
-            delete item.is_admin;
+            item.password = undefined;
+            item.verified = undefined;
+            item.photo_path = undefined;
+            item.encoding_path = undefined;
+            item.user_access = undefined;
+            item.is_admin = undefined;
         });
 
         console.log("Sent all user data to admin.");
@@ -573,7 +573,7 @@ module.exports = function(app, Models) {
          // Debug
          console.log("Found user for token. \nToken:\n" + bodyData.token + "\nUser:\n" + user);
          // End copy of normal get
-         if (!user.is_admin) {
+         if (user[0].is_admin === false) {
              console.log("Non-admin user: " + user.email + ", tried to access all lock data.");
              res.status(403).json("This service requires administrative rights.");
              return
