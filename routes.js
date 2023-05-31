@@ -373,7 +373,8 @@ module.exports = function(app, Models) {
         let bodyData = req.body
 
         console.log("[UserVerify]:")
-        //console.log(bodyData)
+        console.log(bodyData.email)
+        console.log(typeof(bodyData.image_data))
 
         // Check that the data needed is there
         if(bodyData.email === null && bodyData.image_data === null) {
@@ -396,12 +397,14 @@ module.exports = function(app, Models) {
         var data = (bodyData.image_data + "").includes('data:image') ? bodyData.image_data : null;
         if(data === null) {
             res.status(400).json("Failed to validate image data.")
+            console.log("Failed to validate image data.")
             return;
         }
         // Get the file extension
         const fileType = data.includes("image/png") ? ".png" : data.includes("image/jpeg") ? ".jpg" : null
         if(fileType === null) {
             res.status(400).json("Failed to get image file type.")
+            console.log("Failed to get image file type.")
             return;
         }
         // Remove header from data
@@ -409,6 +412,7 @@ module.exports = function(app, Models) {
 
         // Make temp directory for image and encoding
         execSync("mkdir " + user[0]._id);
+        console.log("Created directory: \"" + user[0]._id + "\"")
 
         var buf = Buffer.from(data, 'base64');
 
