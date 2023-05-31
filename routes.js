@@ -390,7 +390,7 @@ module.exports = function(app, Models) {
         var fs = require('fs');
 
         // Check if iamge data has the header
-        var data = (bodyData.new_image_data + "").includes('data:image') ? bodyData.new_image_data : null;
+        var data = (bodyData.image_data + "").includes('data:image') ? bodyData.image_data : null;
         if(data === null) {
             res.status(400).json("Failed to validate image data.")
             return;
