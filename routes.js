@@ -181,7 +181,7 @@ module.exports = function(app, Models) {
             // Image file path: Where the image should be saved
             var imageFilePath =  "images/" + user[0]._id + fileType;
             
-            await fs.writeFile(imageFilePath, buf).then(async () => {
+            await fs.writeFile(imageFilePath, buf).then(() => {
                 console.log(imageFilePath + " saved to file!"); 
                 // Add to photo_path to user entry (db)
                 user[0].photo_path = imageFilePath; 
@@ -189,7 +189,7 @@ module.exports = function(app, Models) {
                 // Encoding file path: Where the python script should save the encoding
                 const encodingFilePath = "encodings/" + user[0]._id + ".enc";
 
-                const success = await Verify.GenerateEncoding(imageFilePath, encodingFilePath);
+                const success = Verify.GenerateEncoding(imageFilePath, encodingFilePath);
                 // Add encoding file path to user entry (db) in case the encoding was successfully generated
                 if(success === true)
                     user[0].encoding_path = encodingFilePath;
@@ -346,7 +346,7 @@ module.exports = function(app, Models) {
         // Debug
         console.log("Found user for token. \nToken:\n" + bodyData.token + "\nUser:\n" + user);
         // End copy of normal get
-        if (user[0].is_admin === false) {
+        if (user.is_admin === false) {
             console.log("Non-admin user: " + user.email + ", tried to access all user data.");
             res.status(403).json("This service requires administrative rights.");
             return
@@ -411,11 +411,7 @@ module.exports = function(app, Models) {
         data = data.replace(/^data:image\/\w+;base64,/, "");
 
         // Make temp directory for image and encoding
-        await exec("mkdir " + user[0]._id, (err, stdout, stderr) => {
-            if(err !== null) {
-                console.log("Error: " + err);
-            }
-        });
+        execSync("mkdir " + user[0]._id);
         console.log("Created directory: \"" + user[0]._id + "\"")
 
         var buf = Buffer.from(data, 'base64');
@@ -423,19 +419,19 @@ module.exports = function(app, Models) {
         // Image file path: Where the image should be saved
         var imageFilePath =  user[0]._id + "/image" + fileType;
         var similarity;
-        await fs.writeFile(imageFilePath, buf).then(async () => { 
+        await fs.writeFile(imageFilePath, buf).then(() => { 
             console.log(imageFilePath + " saved to file!");  
 
             // Encoding file path: Where the python script should save the encoding
             const tempEncodingPath = user[0]._id + "/encoding" + ".enc";
             
             // Generate encodings and compare
-            await Verify.GenerateEncoding(imageFilePath, tempEncodingPath);
-            const output = await Verify.CompareEncodings(user[0].encoding_path, tempEncodingPath);
+            Verify.GenerateEncoding(imageFilePath, tempEncodingPath);
+            const output = Verify.CompareEncodings(user[0].encoding_path, tempEncodingPath);
 
             if(output !== false) {
                 // Delete temnp folder after operation
-                await exec("rm -rf " + user[0]._id, (err, stdout, stderr) => { });
+                execSync("rm -rf " + user[0]._id);
 
                 similarity = Number(output.toString())
             }
@@ -577,7 +573,7 @@ module.exports = function(app, Models) {
          // Debug
          console.log("Found user for token. \nToken:\n" + bodyData.token + "\nUser:\n" + user);
          // End copy of normal get
-         if (user[0].is_admin === false) {
+         if (!user.is_admin) {
              console.log("Non-admin user: " + user.email + ", tried to access all lock data.");
              res.status(403).json("This service requires administrative rights.");
              return
