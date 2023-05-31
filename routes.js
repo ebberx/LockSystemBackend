@@ -314,12 +314,59 @@ module.exports = function(app, Models) {
         console.log("Sent user info.")
         res.status(200).json(replyData)
     });
-
+    
     //
     // UserGetAll
+    //
+    app.get('/api/UserGetAll', async (req, res) => {
+        console.log("[UserGetAll]:");
+        console.log(JSON.stringify(req.headers));
+
+        const token = req.headers.token;
+
+        if (token === undefined) {
+            res.status(400).json("Token not supplied.");
+            console.log("Token not supplied.");
+            return;
+        }
+        
+        const userID = Token.GetUserID(token);
+        
+        // Find User in Database
+        const user = await Models.User.find({_id: userID});
+        
+        if(user === null) {
+            console.log("Failed to find user for token: \n" + token);
+            res.status(400).json("Failed to find user for token: \n" + token)
+            return
+        }
+        // Debug
+        console.log("Found user for token. \nToken:\n" + token + "\nUser:\n" + JSON.stringify(user));
+
+        if (Token.CheckTokenExists(token) === false) {
+            console.log("User does not have access.");
+            res.status(401).json("User does not have access. Login to use this feature.");
+            return;
+        }
+
+        const allUsers = await Models.User.find();
+        allUsers.forEach((item) => {
+            item.password = undefined;
+            item.verified = undefined;
+            item.photo_path = undefined;
+            item.encoding_path = undefined;
+            item.user_access = undefined;
+            item.is_admin = undefined;
+        });
+
+        res.status(200).json(allUsers);
+    });
+
+    //
+    // UserGetAllAdmin
     // (For admins only)
     //
-    app.post('/api/UserGetAll', async (req, res) => {
+    app.post('/api/UserGetAllAdmin', async (req, res) => {
         // Start copy of normal get
         let bodyData = req.body;
 
@@ -355,11 +402,6 @@ module.exports = function(app, Models) {
         const allUsers = await Models.User.find();
         allUsers.forEach((item) => {
             item.password = undefined;
-            item.verified = undefined;
-            item.photo_path = undefined;
-            item.encoding_path = undefined;
-            item.user_access = undefined;
-            item.is_admin = undefined;
         });
 
         console.log("Sent all user data to admin.");
@@ -488,9 +530,10 @@ module.exports = function(app, Models) {
             return
         }
 
-        if(Token.CheckTokenExists(bodyData.token)) {
+        if(Token.CheckTokenExists(bodyData.token) === true) {
             res.status(200).json("OK - User has access.")
             console.log("OK - User has access.")
+            console.log(JSON.stringify(Token.tokenUserMap))
             return
         } else {
             res.status(400).json("Token does not have access.")
