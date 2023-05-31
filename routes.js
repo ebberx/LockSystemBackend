@@ -183,15 +183,19 @@ module.exports = function(app, Models) {
             console.log(user[0]._id)
     
             var buf = Buffer.from(data, 'base64');
-            var filePath =  "images/" + user[0]._id + fileType;
-            await fs.writeFile(filePath, buf, () => { 
-                console.log(filePath + " saved to file!"); 
+            var imageFilePath =  "images/" + user[0]._id + fileType;
+            await fs.writeFile(imageFilePath, buf, async () => { 
+                console.log(imageFilePath + " saved to file!"); 
+                // Add to photo_path to user entry (db)
+                user[0].photo_path = imageFilePath; 
                 
-                // Add to photo_path to user entry
-                user[0].photo_path = filePath; 
+                // Encoding file path: Where the python script should save the encoding
+                encodingFilePath = "encodings/" + user[0]._id + ".enc";
 
-                // Generate and add encodings path to database
-                //const encoding = Verify.GenerateEncoding();
+                const success = Verify.GenerateEncoding(imageFilePath, encodingFilePath);
+                // Add encoding file path to user entry (db) in case the encoding was successfully generated
+                if(success === true)
+                    user[0].encoding_path = encodingFilePath;
             });
         }
         
