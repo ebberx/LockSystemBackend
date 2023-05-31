@@ -530,10 +530,9 @@ module.exports = function(app, Models) {
             return
         }
 
-        if(Token.CheckTokenExists(bodyData.token) === true) {
+        if(Token.CheckTokenExists(bodyData.token)) {
             res.status(200).json("OK - User has access.")
             console.log("OK - User has access.")
-            console.log(JSON.stringify(Token.tokenUserMap))
             return
         } else {
             res.status(400).json("Token does not have access.")
