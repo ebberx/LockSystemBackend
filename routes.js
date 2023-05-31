@@ -414,7 +414,7 @@ module.exports = function(app, Models) {
 
         // Image file path: Where the image should be saved
         var imageFilePath =  user[0]._id + "/image" + fileType;
-
+        var similarity;
         await fs.writeFile(imageFilePath, buf).then(() => { 
             console.log(imageFilePath + " saved to file!");  
 
@@ -426,15 +426,23 @@ module.exports = function(app, Models) {
             const output = Verify.CompareEncodings(user[0].encoding_path, tempEncodingPath);
 
             if(output !== false) {
-                console.log(Number(output.toString()));
-                
                 // Delete temnp folder after operation
                 execSync("rm -rf " + user[0]._id);
-            }
 
+                similarity = Number(output.toString())
+            }
         });
-        
-        res.status(200).json("OK");
+
+        if(!similarity) {
+            res.status(400).json("Failed to get similarity score.");
+            return
+        }
+
+        if(similarity >= 0.92) {
+            res.status(200).json("OK - Acccess granted");    
+        } else {
+            res.status(400).json("Failed to verify user.");    
+        }
     });
 
     ////////////////
