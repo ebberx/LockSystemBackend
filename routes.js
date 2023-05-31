@@ -156,7 +156,7 @@ module.exports = function(app, Models) {
         }
 
         if(updateData.new_image_data != null) {
-            var fs = require('fs');
+            var fs = require('fs').promises;
 
             // Check if data has the header
             var data = (updateData.new_image_data + "").includes('data:image') ? updateData.new_image_data : null;
@@ -393,7 +393,7 @@ module.exports = function(app, Models) {
             return
         }
 
-        var fs = require('fs');
+        var fs = require('fs').promises;
 
         // Check if iamge data has the header
         var data = (bodyData.image_data + "").includes('data:image') ? bodyData.image_data : null;
