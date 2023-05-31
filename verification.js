@@ -24,7 +24,7 @@ module.exports = {
     CompareEncodings: function(baseEncoding, subjectEncoding) {
         try {
             const command = scriptsPath + getSimilarityScript + " " + baseEncoding + " " + subjectEncoding;
-            const output = execsync(command);
+            const output = execSync(command);
     
             // Debug
             console.log("Compared encodings with command: ");
