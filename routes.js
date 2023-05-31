@@ -193,6 +193,8 @@ module.exports = function(app, Models) {
                 // Add encoding file path to user entry (db) in case the encoding was successfully generated
                 if(success === true)
                     user[0].encoding_path = encodingFilePath;
+
+                console.log("set encoding path to: " + encodingFilePath)
             });
         }
         
