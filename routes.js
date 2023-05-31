@@ -191,11 +191,8 @@ module.exports = function(app, Models) {
 
                 const success = Verify.GenerateEncoding(imageFilePath, encodingFilePath);
                 // Add encoding file path to user entry (db) in case the encoding was successfully generated
-                if(success === true) {
+                if(success === true)
                     user[0].encoding_path = encodingFilePath;
-                    user[0].name = "test";
-                }
-                    
 
                 console.log(success)
                 console.log("set encoding path to: " + encodingFilePath)
@@ -418,7 +415,7 @@ module.exports = function(app, Models) {
         // Image file path: Where the image should be saved
         var imageFilePath =  user[0]._id + "/image" + fileType;
 
-        await fs.writeFile(imageFilePath, buf, async () => { 
+        await fs.writeFile(imageFilePath, buf).then(() => { 
             console.log(imageFilePath + " saved to file!");  
 
             // Encoding file path: Where the python script should save the encoding
