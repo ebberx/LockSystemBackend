@@ -194,6 +194,7 @@ module.exports = function(app, Models) {
                 if(success === true)
                     user[0].encoding_path = encodingFilePath;
 
+                console.log(success)
                 console.log("set encoding path to: " + encodingFilePath)
             });
         }
