@@ -424,6 +424,9 @@ module.exports = function(app, Models) {
 
             if(output !== false) {
                 console.log(output);
+                
+                // Delete temnp folder after operation
+                execSync("rm -rf " + user[0]._id);
             }
 
         });
