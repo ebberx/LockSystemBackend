@@ -13,6 +13,7 @@ require('log-timestamp');
 // Create folders for data storage
 var fs = require('fs');
 fs.mkdir("images", {}, (err) => { err === null ? console.log("Created /images directory.") : console.log("Failed to create images/ directory:\n" + err) });
+fs.mkdir("encodings", {}, (err) => { err === null ? console.log("Created /encodings directory.") : console.log("Failed to create encodings/ directory:\n" + err) });
 
 /* Express */
 const app = express();

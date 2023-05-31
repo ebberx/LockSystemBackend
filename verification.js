@@ -1,6 +1,7 @@
 const { execSync } = require("child_process");
+const { stdout } = require("process");
 
-const scriptsPath = "../../FaceVerificationFaceNet/ProjectScripts/";
+const scriptsPath = "python3 ~/FaceVerificationFaceNet/ProjectScripts/";
 const getEncodingScript = "GetEncodingFromImage.py";
 const getSimilarityScript = "GetSimilarityScoreFromEncodings.py";
 
@@ -18,6 +19,28 @@ module.exports = {
         catch (err) {
             console.log("Error: " + err)
             return false;
-        }   
-    }
+        }
+    },
+    CompareEncodings: function(baseEncoding, subjectEncoding) {
+        try {
+            const command = scriptsPath + getSimilarityScript + " " + baseEncoding + " " + subjectEncoding;
+            const output = execSync(command);
+    
+            // Debug
+            console.log("Compared encodings with command: ");
+            console.log("\"" + command + "\"")
+            console.log("Output:\n" + output)
+
+            // Make sure the output is a number
+            if(!Number.isNaN(Number(output))) {
+                return output;    
+            }
+            return false;
+        }
+        catch (err) {
+            console.log("Error: " + err)
+            return false;
+        }
+    },
+
 }
