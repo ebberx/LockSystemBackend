@@ -1,7 +1,7 @@
 
 const Token = require('./token');
 const Verify = require('./verification')
-const { execSync } = require("child_process");
+const { exec } = require("child_process");
 
 module.exports = function(app, Models) {
     ////////////
