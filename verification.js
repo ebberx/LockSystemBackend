@@ -1,4 +1,5 @@
 const { execSync } = require("child_process");
+const { stdout } = require("process");
 
 const scriptsPath = "../../FaceVerificationFaceNet/ProjectScripts/";
 const getEncodingScript = "GetEncodingFromImage.py";
@@ -18,6 +19,24 @@ module.exports = {
         catch (err) {
             console.log("Error: " + err)
             return false;
-        }   
-    }
+        }
+    },
+    CompareEncodings: function(baseEncoding, subjectEncoding) {
+        try {
+            const command = scriptsPath + getSimilarityScript + " " + baseEncoding + " " + subjectEncoding;
+            const output = execsync(command);
+    
+            // Debug
+            console.log("Compared encodings with command: ");
+            console.log("\"" + command + "\"")
+            console.log("Output:\n" + output)
+
+            return output;
+        }
+        catch (err) {
+            console.log("Error: " + err)
+            return false;
+        }
+    },
+
 }
