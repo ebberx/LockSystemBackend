@@ -460,10 +460,15 @@ module.exports = function(app, Models) {
     //  DebugGetTokens
     //
     app.get('/api/DebugGetTokens', async (req, res) => {
-        if(Token.tokens)
-            res.status(200).json(Token.tokens)
+        // const token = Object.fromEntries(Token.tokenUserMap);
+        // if (token)
+        //     res.status(200).json(token);
+        //
+        // if code below is intended to return tokens, use above fix?
+        if(Token.token)
+            res.status(200).json(Token.token);
         else
-            res.status(200).json("No tokens in server.")
+            res.status(200).json("No tokens in server.");
     });
 
     //
