@@ -1,7 +1,7 @@
 const { execSync } = require("child_process");
 const { stdout } = require("process");
 
-const scriptsPath = "python3 ..\\..\\FaceVerificationFaceNet\\ProjectScripts\\";
+const scriptsPath = "python3 ~/FaceVerificationFaceNet/ProjectScripts/";
 const getEncodingScript = "GetEncodingFromImage.py";
 const getSimilarityScript = "GetSimilarityScoreFromEncodings.py";
 
