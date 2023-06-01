@@ -433,7 +433,8 @@ module.exports = function(app, Models) {
             return
         }
 
-        var fs = require('fs').promises;
+        var fs = require('fs');
+        var fsp = require('fs').promises;
 
         // Check if iamge data has the header
         var data = (bodyData.image_data + "").includes('data:image') ? bodyData.image_data : null;
@@ -453,15 +454,19 @@ module.exports = function(app, Models) {
         data = data.replace(/^data:image\/\w+;base64,/, "");
 
         // Make temp directory for image and encoding
-        execSync("mkdir " + user[0]._id);
-        console.log("Created directory: \"" + user[0]._id + "\"")
+        if (fs.existsSync(user[0]._id.toString()) === false) {
+            execSync("mkdir " + user[0]._id);
+            console.log("Created directory: \"" + user[0]._id + "\"");
+        } else {
+            console.log("Directory: " + user[0]._id + " already exists.");
+        }
 
         var buf = Buffer.from(data, 'base64');
 
         // Image file path: Where the image should be saved
         var imageFilePath =  user[0]._id + "/image" + fileType;
         var similarity;
-        await fs.writeFile(imageFilePath, buf).then(() => { 
+        await fsp.writeFile(imageFilePath, buf).then(() => { 
             console.log(imageFilePath + " saved to file!");  
 
             // Encoding file path: Where the python script should save the encoding
