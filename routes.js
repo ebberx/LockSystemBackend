@@ -484,6 +484,11 @@ module.exports = function(app, Models) {
             }
         });
 
+        if (fs.existsSync(user[0]._id.toString()) === true) {
+            console.log("Cleanin up temp folder: " + user[0]._id);
+            execSync("rm -rf " + user[0]._id);
+        }
+
         if(!similarity) {
             res.status(400).json("Failed to get similarity score.");
             return
