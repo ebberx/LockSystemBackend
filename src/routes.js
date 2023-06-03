@@ -136,12 +136,10 @@ module.exports = function(app, ws) {
         if (user[0].is_admin === false) {
             allUsers.forEach((item) => {
                 item.password = undefined;
-                item.verified = undefined;
                 item.photo_path = undefined;
                 item.encoding_path = undefined;
                 item.user_access = undefined;
                 item.is_admin = undefined;
-                item.__v = undefined;
             });
         } else {
             allUsers.forEach((item) => {
