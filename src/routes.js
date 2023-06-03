@@ -419,20 +419,44 @@ module.exports = function(app, ws) {
     // Get Tokens
     //
     app.get('/api/v1/debug/tokens', async (req, res) => {
+        const token = Object.fromEntries(Token.tokenUserMap);
+        if(token !== null)
+            res.status(200).json(token);
+        else
+            res.status(200).json("No tokens in server.");
 
+        return;
     });
 
     //
     // User Access Test
     //
     app.get('/api/v1/debug/userAccess', async (req, res) => {
+        console.log("[UserAccess]:");
 
+        if(req.headers.token === null) {
+            res.status(400).json("Wrong arugment supplied.")
+            console.log("Wrong arugment supplied.")
+            return
+        }
+
+        if(Token.CheckTokenExists(req.headers.token)) {
+            res.status(200).json("OK - User has access.")
+            console.log("OK - User has access.")
+            return
+        } else {
+            res.status(400).json("Token does not have access.")
+            console.log("Token does not have access.")
+            return
+        }
     });
 
     //
     // Check if online
     //
     app.get('/api/v1/debug/isOnline', async (req, res) => {
-
+        console.log("[IsOnline]");
+        res.status(200).json("OK - Online");
+        return;
     });
 }
