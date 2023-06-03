@@ -2,9 +2,9 @@
   "name": "locksystembackend",
   "version": "1.0.0",
   "description": "Backend for a door locking system, that uses RFID as keys",
-  "main": "server.js",
+  "main": "launch.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node launch.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

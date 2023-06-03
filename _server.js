@@ -3,6 +3,8 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const { ObjectId, Decimal128 } = require('mongodb');
 const bodyParser = require('body-parser');
+const dotenv = require('dotenv');
+dotenv.config({'path': 'config/settings.env'})
 
 const http = require("http")
 const ws = require('ws');
