@@ -371,7 +371,7 @@ module.exports = function(app, Models) {
         let bodyData = req.body;
 
         // Debug
-        console.log("[UserGetAll]:")
+        console.log("[UserGetAllAdmin]:")
         console.log(bodyData)
 
         if(bodyData.token == null) {
@@ -608,7 +608,7 @@ module.exports = function(app, Models) {
          let bodyData = req.body;
 
          // Debug
-         console.log("[UserGetInfo]:")
+         console.log("[LockGetAll]:")
          console.log(bodyData)
  
          if(bodyData.token == null) {
