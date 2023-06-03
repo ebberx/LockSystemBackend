@@ -44,8 +44,8 @@ module.exports = {
     },
 
     // Returns token on sucess, undefined on failure
-    FromHeader: function (res, header) {
-        const token = header.token;
+    FromHeader: function (res, req) {
+        const token = req.headers.token;
         if (token == null) {
             console.log("No token supplied.");
             res.status(400).json("No token supplied.");

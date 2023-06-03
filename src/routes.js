@@ -1,5 +1,3 @@
-const UserRepo = require('./repositories/userRepo.js');
-const LockRepo = require('./repositories/lockRepo.js');
 const Token = require('./services/token.js');
 const imageData = require('./services/imageData.js');
 const userRepo = require('./repositories/userRepo.js');
@@ -29,7 +27,7 @@ module.exports = function(app, ws) {
         loginData.email = loginData.email.toLowerCase();
 
         // Query for the user
-        const user = await UserRepo.GetFromMail(res, loginData.email);
+        const user = await userRepo.GetFromMail(res, loginData.email);
         if (user === undefined) 
             return;
 
@@ -55,7 +53,7 @@ module.exports = function(app, ws) {
         console.log(JSON.stringify(req.headers));
 
         // If no token is supplied
-        const token = Token.FromHeader(res, req.header);
+        const token = Token.FromHeader(res, req);
         if (token === undefined) return;
 
         // Do logout and handle result
@@ -79,7 +77,7 @@ module.exports = function(app, ws) {
         console.log(bodyData)
 
         // If no token is supplied
-        const token = Token.FromHeader(res, req.header);
+        const token = Token.FromHeader(res, req);
         if (token === undefined) return;
 
         // Ensure required data
@@ -90,10 +88,12 @@ module.exports = function(app, ws) {
         }
 
         // Find calling user
-        const user = await UserRepo.Get(res, Token.GetUserID(token));
+        const user = await userRepo.Get(res, Token.GetUserID(token));
         if (user === undefined) return;
 
         var similarity = await imageData.Verify(req, res, user[0]);
+        if (similarity === undefined) return;
+
         if (similarity >= 0.92) {
             res.status(200).json("OK - Access granted");
         } else {
@@ -136,10 +136,12 @@ module.exports = function(app, ws) {
         if (user[0].is_admin === false) {
             allUsers.forEach((item) => {
                 item.password = undefined;
+                item.verified = undefined;
                 item.photo_path = undefined;
                 item.encoding_path = undefined;
                 item.user_access = undefined;
                 item.is_admin = undefined;
+                item.__v = undefined;
             });
         } else {
             allUsers.forEach((item) => {
@@ -185,6 +187,7 @@ module.exports = function(app, ws) {
         if (user === undefined) return;
 
         if (user[0].is_admin === false) {
+            desiredUser[0].verified = undefined;
             desiredUser[0].photo_path = undefined;
             desiredUser[0].encoding_path = undefined;
             desiredUser[0].user_access = undefined;
@@ -268,7 +271,7 @@ module.exports = function(app, ws) {
 
         var updatedUser;
         if (user[0].is_admin === false) {
-            updatedUser = await userRepo.Update(req, res, user._id);
+            updatedUser = await userRepo.Update(req, res, user[0]._id);
             if (updatedUser === undefined) return;
             updatedUser.photo_path = undefined;
             updatedUser.encoding_path = undefined;

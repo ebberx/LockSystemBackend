@@ -14,7 +14,7 @@ function getData(res, imageData) {
 }
 
 function getFileExtension(res, data) {
-    var fileType = data.includes("image/png") ? ".png" : data.includes("images/jpeg") ? ".jpeg" : null;
+    var fileType = data.includes("image/png") ? ".png" : data.includes("image/jpeg") ? ".jpeg" : null;
     if (fileType === null) {
         console.log("Failed to get image file type.");
         res.status(400).json("Failed to get image file type.");

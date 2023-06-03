@@ -1,5 +1,5 @@
 const { Lock } = require('../domain/lock.js');
-const LockRepo = require('../repositories/userRepo.js');
+const userRepo = require('../repositories/userRepo.js');
 
 module.exports = {
     // Returns single lock if id supplied or all users
@@ -35,13 +35,14 @@ module.exports = {
         }
 
         // Find owner
-        var owner = await LockRepo.Get(res, ownerID);
+        var owner = await userRepo.Get(res, ownerID);
         if (owner === undefined) {
             res.status(400).json("Failed to find owner.");
             return undefined;
         }
 
-        lock.owner = owner._id;
+        lock.owner = owner[0]._id;
+        lock.active = false;
         lock.save();
         return lock;
     }
