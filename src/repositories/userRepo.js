@@ -48,10 +48,9 @@ module.exports = {
             return undefined;
         } 
 
-        user.password = await bcrypt.hash(user.password, process.env.salt);
-        console.log(user.password)
-
+        const hash = await bcrypt.hash(user.password, process.env.SALT);
         user.email = user.email.toLowerCase();
+        user.password = hash;
 
         const foundUser = await User.find({ email: user.email });
         if (foundUser.length != 0) {

@@ -37,16 +37,20 @@ module.exports = function(app, ws) {
             return;
 
         // Check if credentials match
-        if (user.password != loginData.password) {
-            console.log("Login failed. Invalid credentials.");
-            res.status(400).json("Invalid credentials.");
-            return;
-        }
+        bcrypt.compare(loginData.password, user.password, (err, result) => {
+            // Password is valid
+            if (result) {
+                const token = Token.GenerateAccessToken(user.email, user.password, user._id);
+                console.log("Login success.");
+                res.status(200).json(token);
+            } 
+            // Password is not valid
+            else {
+                console.log("Login failed. Invalid credentials.");
+                res.status(400).json("Invalid credentials.");
+            }
 
-        // Return token
-        const token = Token.GenerateAccessToken(user.email, user.password, user._id);
-        console.log("Login success.");
-        res.status(200).json(token);
+        });
     });
 
     //
