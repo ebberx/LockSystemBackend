@@ -1,6 +1,7 @@
 const { User } = require('../domain/user.js');
 const imageData = require('../services/imageData.js');
 const dotenv = require('dotenv');
+const bcrypt = require('bcrypt');
 dotenv.config({'path': 'config/settings.env'});
 
 module.exports = {

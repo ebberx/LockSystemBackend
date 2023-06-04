@@ -4,6 +4,9 @@ const imageData = require('./services/imageData.js');
 const userRepo = require('./repositories/userRepo.js');
 const lockRepo = require('./repositories/lockRepo.js');
 const bcrypt = require('bcrypt');
+const dotenv = require('dotenv');
+dotenv.config({'path': 'config/settings.env'});
+
 
 module.exports = function(app, ws) {
     /////////////////////
@@ -197,7 +200,7 @@ module.exports = function(app, ws) {
         if (user[0].is_admin === true || userID == user[0]._id) {
             // Read image file from filesystem
             var fs = require('fs');
-            const filePath = "images/" + desiredUser[0];
+            const filePath = "images/" + desiredUser[0]._id;
             
             // Determine file extension
             let fileType = "";
