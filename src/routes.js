@@ -40,7 +40,7 @@ module.exports = function(app, ws) {
         bcrypt.compare(loginData.password, user.password, (err, result) => {
             // Password is valid
             if (result) {
-                const token = Token.GenerateAccessToken(user.email, user.password, user._id);
+                const token = Token.GenerateAccessToken(user._id, user.email, user.is_admin);
                 console.log("Login success.");
                 res.status(200).json(token);
             } 
@@ -54,26 +54,27 @@ module.exports = function(app, ws) {
     });
 
     //
+    // !!! DEPRECATED !!!
     // Logout
     //
-    app.post('/api/v1/logout', async (req, res) => {
-        // Debug
-        console.log("[Functionality:Logout]");
-        console.log(JSON.stringify(req.headers));
-
-        // If no token is supplied
-        const token = Token.FromHeader(res, req);
-        if (token === undefined) return;
-
-        // Do logout and handle result
-        if (Token.RevokeAccessToken(token)) {
-            console.log("Logout successful.");
-            res.status(200).json("OK");
-        } else {
-            console.log("Token does not exist.");
-            res.status(400).json("Token does not exist.");
-        }
-    });
+    // app.post('/api/v1/logout', async (req, res) => {
+    //     // Debug
+    //     console.log("[Functionality:Logout]");
+    //     console.log(JSON.stringify(req.headers));
+    //
+    //     // If no token is supplied
+    //     const token = Token.FromHeader(res, req);
+    //     if (token === undefined) return;
+    //
+    //     // Do logout and handle result
+    //     if (Token.RevokeAccessToken(token)) {
+    //         console.log("Logout successful.");
+    //         res.status(200).json("OK");
+    //     } else {
+    //         console.log("Token does not exist.");
+    //         res.status(400).json("Token does not exist.");
+    //     }
+    // });
 
     //
     // Verify User Face
@@ -85,9 +86,8 @@ module.exports = function(app, ws) {
         console.log("[Functionality:VerifyFace]");
         console.log(bodyData)
 
-        // If no token is supplied
-        const token = Token.FromHeader(res, req);
-        if (token === undefined) return;
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
 
         // Ensure required data
         if (bodyData.image_data === null) {
@@ -97,15 +97,8 @@ module.exports = function(app, ws) {
         }
 
         // Find calling user
-        const user = await userRepo.Get(res, Token.GetUserID(token));
+        const user = await userRepo.Get(res, decoded._id);
         if (user === undefined) return;
-
-        // Check if logged in
-        if (Token.CheckTokenExists(token) === false) {
-            console.log("User does not have access.");
-            res.status(401).json("User does not have access. Login to use this feature.");
-            return;
-        }
 
         var similarity = await imageData.Verify(req, res, user[0]);
         if (similarity === undefined) return;
@@ -128,30 +121,15 @@ module.exports = function(app, ws) {
         console.log("[User:GetAll]");
         console.log(JSON.stringify(req.headers));
 
-        // Aquire token and check exists
-        const token = req.headers.token;
-        if (token === undefined) {
-            res.status(400).json("Token not supplied.");
-            console.log("Token not supplied.");
-            return;
-        }
-
-        // Find user based on token
-        const user = await userRepo.Get(res, Token.GetUserID(token));
-        if (user === undefined) return;
-
-        // Check if logged in
-        if (Token.CheckTokenExists(token) === false) {
-            console.log("User does not have access.");
-            res.status(401).json("User does not have access. Login to use this feature.");
-            return;
-        }
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
 
         // Get all and remove properties based on rights
         const allUsers = await userRepo.Get(res);
-        if (user[0].is_admin === false) {
+        if (decoded.is_admin === false) {
             allUsers.forEach((item) => {
                 item.password = undefined;
+                item.verified = undefined;
                 item.photo_path = undefined;
                 item.encoding_path = undefined;
                 item.user_access = undefined;
@@ -172,36 +150,18 @@ module.exports = function(app, ws) {
     //
     app.get('/api/v1/user/:id', async (req, res) => {
         console.log("[User:GetSingle]");
-        console.log(JSON.stringify(req.headers));
-        console.log("Param: " + req.params.id);
+
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
 
         var userID = req.params.id;
-
-        // Aquire token and check exists
-        const token = req.headers.token;
-        if (token === undefined) {
-            res.status(400).json("Token not supplied.");
-            console.log("Token not supplied.");
-            return;
-        }
-
-        // Find user based on token
-        const user = await userRepo.Get(res, Token.GetUserID(token));
-        if (user === undefined) return;
-
-        // Check if logged in
-        if (Token.CheckTokenExists(token) === false) {
-            console.log("User does not have access.");
-            res.status(401).json("User does not have access. Login to use this feature.");
-            return;
-        }
 
         // Get desired user entity, and remove properties based on rights
         var desiredUser = await userRepo.Get(res, userID);
         if (desiredUser === undefined) return;
         
         // If calling user is admin, or regular using is getting own info
-        if (user[0].is_admin === true || userID == user[0]._id) {
+        if (decoded.is_admin === true || userID == decoded._id) {
             // Read image file from filesystem
             var fs = require('fs');
             const filePath = "images/" + desiredUser[0]._id;
@@ -235,14 +195,17 @@ module.exports = function(app, ws) {
             }
         }
 
+        console.log(decoded._id);
+        console.log(userID);
+        console.log(decoded.is_admin);
         // Remove properties based on rights
-        if (user[0].is_admin === false) {
+        if (decoded.is_admin === false) {
             desiredUser[0].verified = undefined;
             desiredUser[0].photo_path = undefined;
             desiredUser[0].encoding_path = undefined;
             desiredUser[0].is_admin = undefined
         }
-        if (user[0]._id != userID) {
+        if (decoded._id != userID && decoded.is_admin !== true) {
             desiredUser[0].user_access = undefined;
         }
         desiredUser[0].password = undefined;
@@ -273,15 +236,10 @@ module.exports = function(app, ws) {
         if (token === undefined) tokenSupplied = false;
 
         if (tokenSupplied === true) {
-            const user = await userRepo.Get(res, Token.GetUserID(token));
+            const decoded = Token.VerifyToken(req, res);
+            if (decoded === undefined) return;
 
-            if (Token.CheckTokenExists(token) === false) {
-                console.log("User does not have access.");
-                res.status(401).json("User does not have access. Login to use this feature.");
-                return;
-            }
-
-            isAdmin = user[0].is_admin;
+            isAdmin = decoded.is_admin;
         }
 
         // Return created user, based on rights
@@ -293,7 +251,7 @@ module.exports = function(app, ws) {
             console.log("Created user for non admin user.");
         }
         user.password = undefined;
-        res.status(200).json(user);
+        res.status(201).json(user);
     });
 
     //
@@ -304,23 +262,14 @@ module.exports = function(app, ws) {
         console.log("[User:Update]");
         console.log(JSON.stringify(req.body));
 
-        // Aquire token and check exists
-        const token = req.headers.token;
-        if (token === undefined) {
-            res.status(400).json("Token not supplied.");
-            console.log("Token not supplied.");
-            return;
-        }
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
 
-        // Find user based on token
-        const user = await userRepo.Get(res, Token.GetUserID(token));
-        if (user === undefined) return;
-
-        // Check if logged in
-        if (Token.CheckTokenExists(token) === false) {
-            console.log("User does not have access.");
-            res.status(401).json("User does not have access. Login to use this feature.");
-            return;
+        var userID;
+        if (req.body._id !== undefined && decoded.is_admin) {
+            userID = req.body._id;
+        } else {
+            userID = decoded._id;
         }
 
         // Update image data if supplied
@@ -344,11 +293,9 @@ module.exports = function(app, ws) {
             // Remove header from data
             data = data.replace(/^data:image\/\w+;base64,/, "");
     
-            console.log(user[0]._id)
-    
             var buf = Buffer.from(data, 'base64');
             // Image file path: Where the image should be saved
-            var imageFilePath =  "images/" + user[0]._id + fileType;
+            var imageFilePath =  "images/" + userID + fileType;
             
             await fs.writeFile(imageFilePath, buf).then(() => {
                 console.log(imageFilePath + " saved to file!"); 
@@ -356,7 +303,7 @@ module.exports = function(app, ws) {
                 req.body.photo_path = imageFilePath; 
 
                 // Encoding file path: Where the python script should save the encoding
-                const encodingFilePath = "encodings/" + user[0]._id + ".enc";
+                const encodingFilePath = "encodings/" + userID + ".enc";
 
                 const success = Verify.GenerateEncoding(imageFilePath, encodingFilePath);
                 // Add encoding file path to user entry (db) in case the encoding was successfully generated
@@ -369,24 +316,18 @@ module.exports = function(app, ws) {
         }
 
         // Update user data
-        var updatedUser;
-        if (user[0].is_admin === false) {
-            updatedUser = await userRepo.Update(req, res, user[0]._id);
-            if (updatedUser === undefined) return;
+        var updatedUser = await userRepo.Update(req, res, userID);
+        if (updatedUser === undefined) return;
+
+        if (decoded.is_admin === false) {
             updatedUser.verified = undefined;
             updatedUser.photo_path = undefined;
             updatedUser.encoding_path = undefined;
             updatedUser.is_admin = undefined;
-            console.log("Successfully updated user: " + updatedUser._id);
-        } else {
-            updatedUser = await userRepo.Update(req, res, req.body._id);
-            if (updatedUser === undefined) return;
-            console.log("Successfully updated user: " + updatedUser._id);
         }
         updatedUser.password = undefined;
 
-        
-        // Return results based on rights
+        console.log("Successfully updated user: " + updatedUser._id);
         res.status(200).json(updatedUser);
     });
 
@@ -409,28 +350,16 @@ module.exports = function(app, ws) {
         console.log("[Lock:GetAll]");
         console.log(req.headers);
 
-        // Aquire token and check exists
-        const token = req.headers.token;
-        if (token === undefined) {
-            res.status(400).json("Token not supplied.");
-            console.log("Token not supplied.");
-            return;
-        }
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
 
         // Find user based on token
-        const user = await userRepo.Get(res, Token.GetUserID(token));
+        const user = await userRepo.Get(res, decoded._id);
         if (user === undefined) return;
-
-        // Check if logged in
-        if (Token.CheckTokenExists(token) === false) {
-            console.log("User does not have access.");
-            res.status(401).json("User does not have access. Login to use this feature.");
-            return;
-        }
 
         // Query locks based on rights
         var allLocks = [];
-        if (user[0].is_admin === true) {
+        if (decoded.is_admin === true) {
             allLocks = await lockRepo.Get(res);
             if (allLocks === undefined) return;
             console.log("Sent all lock data to admin.");
@@ -462,24 +391,12 @@ module.exports = function(app, ws) {
         console.log("[Lock:Create]");
         console.log(req.body);
 
-        // Aquire token and check exists
-        const token = req.headers.token;
-        if (token === undefined) {
-            res.status(400).json("Token not supplied.");
-            console.log("Token not supplied.");
-            return;
-        }
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
 
         // Find user based on token
-        const user = await userRepo.Get(res, Token.GetUserID(token));
+        const user = await userRepo.Get(res, decoded._id);
         if (user === undefined) return;
-
-        // Check if logged in
-        if (Token.CheckTokenExists(token) === false) {
-            console.log("User does not have access.");
-            res.status(401).json("User does not have access. Login to use this feature.");
-            return;
-        }
 
         // Check if arguments needed are supplied
         var ownerID;
@@ -489,7 +406,7 @@ module.exports = function(app, ws) {
             return;
         }
 
-        if (req.body.owner != null && user[0].is_admin === false) {
+        if (req.body.owner != null && decoded.is_admin === false) {
             ownerID = user[0]._id;
         }
         if (req.body.owner == null) ownerID = user[0]._id;
@@ -498,7 +415,7 @@ module.exports = function(app, ws) {
         const lock = await lockRepo.Create(req, res, ownerID);
         if (lock === undefined) return;
 
-        res.status(200).json(lock);
+        res.status(201).json(lock);
     });
 
     //
@@ -521,17 +438,18 @@ module.exports = function(app, ws) {
     /// DEBUG ///
     /////////////
     //
+    // !!! DEPRECATED !!!
     // Get Tokens
     //
-    app.get('/api/v1/debug/tokens', async (req, res) => {
-        const token = Object.fromEntries(Token.tokenUserMap);
-        if(token !== null)
-            res.status(200).json(token);
-        else
-            res.status(200).json("No tokens in server.");
-
-        return;
-    });
+    // app.get('/api/v1/debug/tokens', async (req, res) => {
+    //     const token = Object.fromEntries(Token.tokenUserMap);
+    //     if(token !== null)
+    //         res.status(200).json(token);
+    //     else
+    //         res.status(200).json("No tokens in server.");
+    //
+    //     return;
+    // });
 
     //
     // User Access Test
@@ -539,21 +457,11 @@ module.exports = function(app, ws) {
     app.get('/api/v1/debug/userAccess', async (req, res) => {
         console.log("[UserAccess]:");
 
-        if(req.headers.token === null) {
-            res.status(400).json("Wrong arugment supplied.")
-            console.log("Wrong arugment supplied.")
-            return
-        }
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
 
-        if(Token.CheckTokenExists(req.headers.token)) {
-            res.status(200).json("OK - User has access.")
-            console.log("OK - User has access.")
-            return
-        } else {
-            res.status(400).json("Token does not have access.")
-            console.log("Token does not have access.")
-            return
-        }
+        console.log("OK - User has access.");
+        res.status(200).json("OK - User has access.");
     });
 
     //

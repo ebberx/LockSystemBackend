@@ -1,20 +1,57 @@
+const dotenv = require('dotenv');
+const jwt = require('jsonwebtoken');
+dotenv.config({'path': 'config/settings.env'});
+
 module.exports = {
     // Map that holds key: [Token] and value: [User._id]
     tokenUserMap: new Map(),
 
+    // Verifies Tokens, returns decoded token on success or undefined on failure
+    VerifyToken: function (req, res) {
+        const token = req.headers.token;
+        console.log(token);
+
+        if (!token) {
+            console.log("No token provided.");
+            res.status(403).send("User does not have access.");
+            return undefined;
+        }
+
+        try {
+            const decoded = jwt.verify(token, process.env.TOKEN_KEY);
+            return decoded;
+        } catch (err) {
+            console.log("Invalid token used.");
+            res.status(401).json("Invalid token.");
+            return undefined;
+        }
+    },
+
     /*  Generates a token for access. */
-    GenerateAccessToken: function (email, password, userID) { 
-        const token = Buffer.from(email + password).toString('base64')
-        
-        // Check if it exits already to avoid making duplicates.
-        if(this.CheckTokenExists(token))
-            return token;
-        
-        
-        // Add the new token if it does exist.
-        this.tokenUserMap.set(token, userID);
-        console.log("Generated token: \n" + token)
+    GenerateAccessToken: function (userID, email, is_admin) { 
+        const token = jwt.sign(
+            {
+                _id: userID,
+                email,
+                is_admin,
+            },
+            process.env.TOKEN_KEY,
+            { 
+                expiresIn: "2h",
+            }
+        );
         return token;
+        // const token = Buffer.from(email + password).toString('base64')
+        // 
+        // // Check if it exits already to avoid making duplicates.
+        // if(this.CheckTokenExists(token))
+        //     return token;
+        // 
+        // 
+        // // Add the new token if it does exist.
+        // this.tokenUserMap.set(token, userID);
+        // console.log("Generated token: \n" + token)
+        // return token;
     },
 
     /*  Deletes a token so it cannot be used for access. 
