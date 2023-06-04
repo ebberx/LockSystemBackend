@@ -4,6 +4,9 @@ const imageData = require('./services/imageData.js');
 const userRepo = require('./repositories/userRepo.js');
 const lockRepo = require('./repositories/lockRepo.js');
 const bcrypt = require('bcrypt');
+const dotenv = require('dotenv');
+dotenv.config({'path': 'config/settings.env'});
+
 
 module.exports = function(app, ws) {
     /////////////////////
@@ -34,16 +37,20 @@ module.exports = function(app, ws) {
             return;
 
         // Check if credentials match
-        if (user.password != loginData.password) {
-            console.log("Login failed. Invalid credentials.");
-            res.status(400).json("Invalid credentials.");
-            return;
-        }
+        bcrypt.compare(loginData.password, user.password, (err, result) => {
+            // Password is valid
+            if (result) {
+                const token = Token.GenerateAccessToken(user.email, user.password, user._id);
+                console.log("Login success.");
+                res.status(200).json(token);
+            } 
+            // Password is not valid
+            else {
+                console.log("Login failed. Invalid credentials.");
+                res.status(400).json("Invalid credentials.");
+            }
 
-        // Return token
-        const token = Token.GenerateAccessToken(user.email, user.password, user._id);
-        console.log("Login success.");
-        res.status(200).json(token);
+        });
     });
 
     //
@@ -197,7 +204,7 @@ module.exports = function(app, ws) {
         if (user[0].is_admin === true || userID == user[0]._id) {
             // Read image file from filesystem
             var fs = require('fs');
-            const filePath = "images/" + desiredUser[0];
+            const filePath = "images/" + desiredUser[0]._id;
             
             // Determine file extension
             let fileType = "";
