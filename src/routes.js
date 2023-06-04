@@ -293,7 +293,7 @@ module.exports = function(app, ws) {
             console.log("Created user for non admin user.");
         }
         user.password = undefined;
-        res.status(200).json(user);
+        res.status(201).json(user);
     });
 
     //
@@ -498,7 +498,7 @@ module.exports = function(app, ws) {
         const lock = await lockRepo.Create(req, res, ownerID);
         if (lock === undefined) return;
 
-        res.status(200).json(lock);
+        res.status(201).json(lock);
     });
 
     //
