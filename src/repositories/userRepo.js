@@ -1,5 +1,7 @@
 const { User } = require('../domain/user.js');
 const imageData = require('../services/imageData.js');
+const dotenv = require('dotenv');
+dotenv.config({'path': 'config/settings.env'});
 
 module.exports = {
     // Returns single user if id supplied or all users
@@ -44,6 +46,9 @@ module.exports = {
             res.status(400).json("Wrong arguments supplied.");
             return undefined;
         } 
+
+        user.password = await bcrypt.hash(user.password, process.env.salt);
+        console.log(user.password)
 
         user.email = user.email.toLowerCase();
 
