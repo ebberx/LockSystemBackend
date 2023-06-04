@@ -65,6 +65,7 @@ module.exports = {
     Update: async function(req, res, id) {
         if (id === undefined) {
             console.log("Failed to update user. No ID supplied.");
+            res.status(400).json("Wrong arguments supplied.");
             return undefined;
         }
 

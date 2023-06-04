@@ -91,6 +91,13 @@ module.exports = function(app, ws) {
         const user = await userRepo.Get(res, Token.GetUserID(token));
         if (user === undefined) return;
 
+        // Check if logged in
+        if (Token.CheckTokenExists(token) === false) {
+            console.log("User does not have access.");
+            res.status(401).json("User does not have access. Login to use this feature.");
+            return;
+        }
+
         var similarity = await imageData.Verify(req, res, user[0]);
         if (similarity === undefined) return;
 
@@ -136,12 +143,10 @@ module.exports = function(app, ws) {
         if (user[0].is_admin === false) {
             allUsers.forEach((item) => {
                 item.password = undefined;
-                item.verified = undefined;
                 item.photo_path = undefined;
                 item.encoding_path = undefined;
                 item.user_access = undefined;
                 item.is_admin = undefined;
-                item.__v = undefined;
             });
         } else {
             allUsers.forEach((item) => {
@@ -184,17 +189,56 @@ module.exports = function(app, ws) {
 
         // Get desired user entity, and remove properties based on rights
         var desiredUser = await userRepo.Get(res, userID);
-        if (user === undefined) return;
+        if (desiredUser === undefined) return;
+        
+        // If calling user is admin, or regular using is getting own info
+        if (user[0].is_admin === true || userID == user[0]._id) {
+            // Read image file from filesystem
+            var fs = require('fs');
+            const filePath = "images/" + desiredUser[0];
+            
+            // Determine file extension
+            let fileType = "";
+            let base64Header = "";
 
+            // Check if JPG
+            await fs.promises.access(filePath + ".jpg").then(() => { 
+                fileType = ".jpg"; 
+                base64Header = "data:image/jpeg;base64,"; 
+            }).catch(() => { 
+                console.log(filePath + ".jpg does not exist"); 
+            })
+            // Check if PNG
+            await fs.promises.access(filePath + ".png").then(() => { 
+                fileType = ".png"; 
+                base64Header = "data:image/png;base64,"; 
+            }).catch(() => { 
+                console.log(filePath + ".png does not exist"); 
+            })
+
+            // Make sure we found a file type
+            if(fileType !== "") {
+                // Get file data
+                const fileData = await fs.promises.readFile(filePath + fileType, {encoding: 'base64'})
+                // Add file data to reply
+                if(fileData !== null)
+                    desiredUser[0].image = base64Header+fileData;
+            }
+        }
+
+        // Remove properties based on rights
         if (user[0].is_admin === false) {
             desiredUser[0].verified = undefined;
             desiredUser[0].photo_path = undefined;
             desiredUser[0].encoding_path = undefined;
-            desiredUser[0].user_access = undefined;
             desiredUser[0].is_admin = undefined
         }
+        if (user[0]._id != userID) {
+            desiredUser[0].user_access = undefined;
+        }
         desiredUser[0].password = undefined;
-
+        
+        
         // Return results
         res.status(200).json(desiredUser[0]);
     });
@@ -233,6 +277,7 @@ module.exports = function(app, ws) {
 
         // Return created user, based on rights
         if (isAdmin === false) {
+            user.verified = undefined;
             user.photo_path = undefined;
             user.encoding_path = undefined;
             user.is_admin = undefined;
@@ -269,21 +314,69 @@ module.exports = function(app, ws) {
             return;
         }
 
+        // Update image data if supplied
+        if (req.body.image !== undefined) {
+            var fs = require('fs').promises;
+
+            // Check if data has the header
+            var data = (req.body.image + "").includes('data:image') ? req.body.image : null;
+            if(data === null) {
+                res.status(400).json("Failed to validate image data.")
+                return;
+            }
+    
+            // Get the file extension
+            const fileType = data.includes("image/png") ? ".png" : data.includes("image/jpeg") ? ".jpg" : null
+            if(fileType === null) {
+                res.status(400).json("Failed to get image file type.")
+                return;
+            }
+    
+            // Remove header from data
+            data = data.replace(/^data:image\/\w+;base64,/, "");
+    
+            console.log(user[0]._id)
+    
+            var buf = Buffer.from(data, 'base64');
+            // Image file path: Where the image should be saved
+            var imageFilePath =  "images/" + user[0]._id + fileType;
+            
+            await fs.writeFile(imageFilePath, buf).then(() => {
+                console.log(imageFilePath + " saved to file!"); 
+                // Add to photo_path to user entry (db)
+                req.body.photo_path = imageFilePath; 
+
+                // Encoding file path: Where the python script should save the encoding
+                const encodingFilePath = "encodings/" + user[0]._id + ".enc";
+
+                const success = Verify.GenerateEncoding(imageFilePath, encodingFilePath);
+                // Add encoding file path to user entry (db) in case the encoding was successfully generated
+                if(success === true)
+                    req.body.encoding_path = encodingFilePath;
+
+                console.log(success)
+                console.log("set encoding path to: " + encodingFilePath)
+            });
+        }
+
+        // Update user data
         var updatedUser;
         if (user[0].is_admin === false) {
             updatedUser = await userRepo.Update(req, res, user[0]._id);
             if (updatedUser === undefined) return;
+            updatedUser.verified = undefined;
             updatedUser.photo_path = undefined;
             updatedUser.encoding_path = undefined;
             updatedUser.is_admin = undefined;
             console.log("Successfully updated user: " + updatedUser._id);
         } else {
-            updatedUser = await userRepo.Update(req, res, req.body.id);
+            updatedUser = await userRepo.Update(req, res, req.body._id);
             if (updatedUser === undefined) return;
             console.log("Successfully updated user: " + updatedUser._id);
         }
         updatedUser.password = undefined;
 
+        
         // Return results based on rights
         res.status(200).json(updatedUser);
     });
