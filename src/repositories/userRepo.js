@@ -15,7 +15,7 @@ module.exports = {
             user = await User.find({ _id: id });
         }
 
-        if (user === null) {
+        if (user.length === 0) {
             console.log("Failed to find user with id: " + id);
             res.status(400).json("Failed to find user/s.");
             return undefined;
@@ -28,7 +28,7 @@ module.exports = {
     GetFromMail: async function(res, email) {
         var user = await User.find({ email: email });
 
-        if (user === null) {
+        if (user.length === 0) {
             console.log("Failed to find user with email: " + email);
             res.status(400).json("Failed to find user/s.");
             return undefined;
