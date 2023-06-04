@@ -1,7 +1,9 @@
+const Verify = require('./services/verification.js');
 const Token = require('./services/token.js');
 const imageData = require('./services/imageData.js');
 const userRepo = require('./repositories/userRepo.js');
 const lockRepo = require('./repositories/lockRepo.js');
+const bcrypt = require('bcrypt');
 
 module.exports = function(app, ws) {
     /////////////////////
