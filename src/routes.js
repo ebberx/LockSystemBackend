@@ -119,7 +119,6 @@ module.exports = function(app, ws) {
     app.get('/api/v1/user', async (req, res) => {
         // Debug
         console.log("[User:GetAll]");
-        console.log(JSON.stringify(req.headers));
 
         const decoded = Token.VerifyToken(req, res);
         if (decoded === undefined) return;
@@ -195,9 +194,6 @@ module.exports = function(app, ws) {
             }
         }
 
-        console.log(decoded._id);
-        console.log(userID);
-        console.log(decoded.is_admin);
         // Remove properties based on rights
         if (decoded.is_admin === false) {
             desiredUser[0].verified = undefined;
@@ -260,7 +256,7 @@ module.exports = function(app, ws) {
     app.put('/api/v1/user', async (req, res) => {
         // Debug
         console.log("[User:Update]");
-        console.log(JSON.stringify(req.body));
+        console.log(req.body);
 
         const decoded = Token.VerifyToken(req, res);
         if (decoded === undefined) return;
