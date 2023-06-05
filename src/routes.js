@@ -609,7 +609,7 @@ module.exports = function(app, ws) {
     //
     // Update
     //
-    app.update('api/v1/invite', async(req, res) => {
+    app.put('api/v1/invite', async(req, res) => {
         res.status(500).json("Not implemented yet.")
     });
 
