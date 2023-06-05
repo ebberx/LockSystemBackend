@@ -175,15 +175,21 @@ module.exports = function(app, ws) {
                     foundImage = true;
                     base64Header = "data:image/jpeg;base64,";
                 }
-                else fileData = await fs.promises.readFile(filePath + ".png", {encoding: 'base64'});
-                if (fileData !== null) {
-                    foundImage = true;
-                    base64Header = "data:image/png;base64,";
-                }
             } catch (e) {
                 console.log(e);
             }
             
+            try {
+                if (foundImage === false) {
+                    fileData = await fs.promises.readFile(filePath + ".png", {encoding: 'base64'});
+                    if (fileData !== null) {
+                        foundImage = true;
+                        base64Header = "data:image/png;base64,";
+                    }
+                }
+            } catch (e) {
+                console.log(e);
+            }
             // // Determine file extension
             // let fileType = "";
             // let base64Header = "";
