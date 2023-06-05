@@ -212,7 +212,6 @@ module.exports = function(app, ws) {
             // }
             if (foundImage) {
                 desiredUser[0].image = base64Header + fileData;
-                console.log(desiredUser[0].image);
             }
         }
 
@@ -229,6 +228,7 @@ module.exports = function(app, ws) {
         desiredUser[0].password = undefined;
         
         // Return results
+        console.log(desiredUser[0])
         res.status(200).json(desiredUser[0]);
     });
 
