@@ -336,7 +336,26 @@ module.exports = function(app, ws) {
     // Delete
     //
     app.delete('/api/v1/user', async (req, res) => {
-        res.status(500).json("Not implemented yet.");
+        // Debug
+        console.log("[User:Delete]");
+
+        // Verify token and ensure token data return
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Verify caller is allowed to delete specified user
+        if (decoded.is_admin === false && req._id != decoded._id) {
+            console.log("Non admin user {" + decoded._id + "} tried to delete user {" + req._id + "}");
+            res.status(403).json("You do not have the proper rights to perform this action.");
+            return;
+        }
+
+        // Delete user
+        const user = userRepo.Delete(req, res);
+        if (user === undefined) return;
+
+        // Return result
+        res.status(204).send();
     });
 
     ////////////
@@ -380,7 +399,22 @@ module.exports = function(app, ws) {
     // Get Single
     //
     app.get('/api/v1/lock:uid', async (req, res) => {
-        res.status(500).json("Not implemented yet.");
+        // Debug
+        console.log("[Lock:GetSingle]");
+
+        // Get and verify token
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Get LockID
+        var lockID = req.params.id;
+
+        // Get desired lock
+        var lock = await lockRepo.Get(res, lockID);
+        if (lock === undefined) return;
+
+        // return lock
+        res.status(200).json(lock);
     });
 
     //
@@ -395,7 +429,7 @@ module.exports = function(app, ws) {
         if (decoded === undefined) return;
 
         // Find user based on token
-        const user = await userRepo.Get(res, decoded._id);
+        var user = await userRepo.Get(res, decoded._id);
         if (user === undefined) return;
 
         // Check if arguments needed are supplied
@@ -409,12 +443,29 @@ module.exports = function(app, ws) {
         if (req.body.owner != null && decoded.is_admin === false) {
             ownerID = user[0]._id;
         }
+        if (req.body.owner != null && decoded.is_admin === true) {
+            user = await userRepo.Get(res, req.body.owner);
+            if (user === undefined) return;
+        }
         if (req.body.owner == null) ownerID = user[0]._id;
 
-        // Create lock and return results
+        user = user[0];
+
+        // Create lock and add to owner user_access
         const lock = await lockRepo.Create(req, res, ownerID);
         if (lock === undefined) return;
 
+        user.user_access.push(lock._id);
+        var request = { 
+            body: {
+                _id: user._id,
+                user_access: user.user_access, 
+            },
+        };
+        user = await userRepo.Update(request, res, user._id);
+        if (user === undefined) return;
+
+        // Return result
         res.status(201).json(lock);
     });
 
@@ -423,7 +474,31 @@ module.exports = function(app, ws) {
     // Update
     //
     app.put('/api/v1/lock', async (req, res) => {
-        res.status(500).json("Not implemented yet.");
+        // Debug
+        console.log("[Lock:Update]");
+        console.log(JSON.stringify(req.body));
+
+        // Token shenanigans
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Get lock in question
+        const lock = await lockRepo.Get(res, req.body._id);
+        if (lock === undefined) return;
+
+        // Ensure proper rights to update lock
+        if (decoded.is_admin === false && lock.owner != decoded._id) {
+            console.log("Non admin user tried to update lock. UserID: " + decoded._id);
+            res.status(403).json("Invalid rights.");
+            return;
+        }
+
+        // Update lock
+        const updatedLock = await lockRepo.Update(req, res);
+        if (updatedLock === undefined) return;
+
+        console.log("Updated lock: " + updatedLock._id);
+        res.status(200).json(updatedLock);
     });
 
     //

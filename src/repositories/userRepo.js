@@ -113,8 +113,25 @@ module.exports = {
         return user;
     },
 
-    // To be implemented
-    // Delete: async function(req, res) {
-    //
-    // }
+    // Returns user if success, undefined if failure
+    Delete: async function(req, res) {
+        // Get id and find user
+        const id = req.body._id;
+        const user = await User.find({ _id: id });
+
+        // Verify user found
+        if (user.length == 0) {
+            console.log("Failed to delete user. Could not find user with ID: " + id);
+            res.status(400).json("Couldn't find user in database.")
+            return undefined;
+        }
+        user = user[0];
+
+        // Delete user locks - how to implement???
+        // TBI
+
+        // Remove and return result
+        user.remove();
+        return user;
+    }
 }

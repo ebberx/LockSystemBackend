@@ -34,6 +34,14 @@ module.exports = {
             return undefined;
         }
 
+        // Does lock with serial exist
+        const foundLock = await Lock.find({ serial: lock.serial });
+        if (foundLock.length != 0) {
+            console.log("Failed to create lock. Lock with serial already exists.");
+            res.status(400).json("Lock with serial already exists.");
+            return undefined;
+        }
+
         // Find owner
         var owner = await userRepo.Get(res, ownerID);
         if (owner === undefined) {
@@ -45,15 +53,43 @@ module.exports = {
         lock.active = false;
         lock.save();
         return lock;
-    }
+    },
 
     // To be implemented:
-    // Update: async funtion(req, res, id) {
-    //
-    // }
-    
+    Update: async function(req, res) {
+        // Get lock id, lock and verify result found
+        const id = req.body._id;
+        const lock = await Lock.find({ _id: id });
+        if (lock.length == 0) {
+            console.log("Failed to update lock. Could not find lock with ID: " + id);
+            res.status(400).json("Couldn't find lock in database.");
+            return undefined;
+        }
+        lock = lock[0];
+
+        // Update properties
+        if (req.body.serial != null)
+            lock.serial = req.body.serial;
+
+        if (req.body.name != null)
+            lock.name = req.body.name;
+
+        if (req.body.location != null)
+            lock.location = req.body.location;
+
+        if (req.body.active != null)
+            lock.active = req.body.active;
+
+        if (req.body.owner != null)
+            lock.owner = req.body.owner;
+
+        // Save changes and return updated lock
+        await lock.save();
+        return lock;
+    },
+
     // To be implemented:
-    // Delete: async function(req, res, id) {
-    //
-    // }
+    Delete: async function(req, res, id) {
+
+    }
 }
