@@ -163,7 +163,7 @@ module.exports = function(app, ws) {
         if (decoded.is_admin === true || userID == decoded._id) {
             // Read image file from filesystem
             var fs = require('fs');
-            const filePath = "images/" + desiredUser[0]._id;
+            const filePath = "/home/debian/lockbackend/LockSystemBackend/images/" + desiredUser[0]._id;
 
             var foundImage = false;
             var base64Header = "";
