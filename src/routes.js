@@ -508,6 +508,45 @@ module.exports = function(app, ws) {
     app.delete('/api/v1/lock', async (req, res) => {
         res.status(500).json("Not implemented yet.");
     });
+    
+    //////////////
+    /// INVITE ///
+    //////////////
+    
+    //
+    // Get from invite _id
+    //
+    app.get('api/v1/invite:id', async(req, res) => {
+        res.status(500).json("Not implemented yet.")
+    });
+    
+    //
+    // Get from user
+    //
+    app.get('api/v1/invite:uid', async(req, res) => {
+        res.status(500).json("Not implemented yet.")
+    });
+
+    //
+    // Create
+    //
+    app.post('api/v1/invite', async(req, res) => {
+        res.status(500).json("Not implemented yet.")
+    });
+
+    //
+    // Update
+    //
+    app.update('api/v1/invite', async(req, res) => {
+        res.status(500).json("Not implemented yet.")
+    });
+
+    //
+    // Delete
+    //
+    app.delete('api/v1/invite', async(req, res) => {
+        res.status(500).json("Not implemented yet.")
+    });
 
     /////////////
     /// DEBUG ///
