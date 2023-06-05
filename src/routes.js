@@ -158,6 +158,7 @@ module.exports = function(app, ws) {
         // Get desired user entity, and remove properties based on rights
         var desiredUser = await userRepo.Get(res, userID);
         if (desiredUser === undefined) return;
+        desiredUser = desiredUser.toObject();
         
         // If calling user is admin, or regular using is getting own info
         if (decoded.is_admin === true || userID == decoded._id) {
@@ -211,25 +212,25 @@ module.exports = function(app, ws) {
             //         desiredUser[0].image = base64Header+fileData;
             // }
             if (foundImage) {
-                desiredUser[0].image = base64Header + fileData;
+                desiredUser.image = base64Header + fileData;
             }
         }
 
         // Remove properties based on rights
         if (decoded.is_admin === false) {
-            desiredUser[0].verified = undefined;
-            desiredUser[0].photo_path = undefined;
-            desiredUser[0].encoding_path = undefined;
-            desiredUser[0].is_admin = undefined
+            desiredUser.verified = undefined;
+            desiredUser.photo_path = undefined;
+            desiredUser.encoding_path = undefined;
+            desiredUser.is_admin = undefined
         }
         if (decoded._id != userID && decoded.is_admin !== true) {
-            desiredUser[0].user_access = undefined;
+            desiredUser.user_access = undefined;
         }
-        desiredUser[0].password = undefined;
+        desiredUser.password = undefined;
         
         // Return results
-        console.log(desiredUser[0])
-        res.status(200).json(desiredUser[0]);
+        console.log(desiredUser)
+        res.status(200).json(desiredUser);
     });
 
     //
