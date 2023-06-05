@@ -332,7 +332,6 @@ module.exports = function(app, ws) {
     });
 
     //
-    // To be implemented:
     // Delete
     //
     app.delete('/api/v1/user', async (req, res) => {
@@ -344,9 +343,10 @@ module.exports = function(app, ws) {
         if (decoded === undefined) return;
 
         // Verify caller is allowed to delete specified user
-        if (decoded.is_admin === false && req._id != decoded._id) {
+        if (req.body._id === undefined) req.body._id = decoded._id;
+        if (decoded.is_admin === false && req.body._id != decoded._id) {
             console.log("Non admin user {" + decoded._id + "} tried to delete user {" + req._id + "}");
-            res.status(403).json("You do not have the proper rights to perform this action.");
+            res.status(403).json("Invalid rights.");
             return;
         }
 
@@ -502,11 +502,35 @@ module.exports = function(app, ws) {
     });
 
     //
-    // To be implemented:
     // Delete
     //
     app.delete('/api/v1/lock', async (req, res) => {
-        res.status(500).json("Not implemented yet.");
+        // Debug
+        console.log("[Lock:Delete]");
+
+        // Verify token and ensure token data return
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Verify caller is allowed to delete specified lock
+        var lock;
+        if (decoded.is_admin === false) {
+            lock = await lockRepo.Get(res, req.body._id);
+            if (lock === undefined) return;
+            lock = lock[0];
+            if (decoded._id != lock.owner) {
+                console.log("Non admin user {" + decoded._id + "} tried to delete lock {" + lock._id + "}");
+                res.status(403).json("Invalid rights.");
+                return;
+            }
+        }
+
+        // Delete lock
+        lock = await lockRepo.Delete(req, res);
+        if (lock === undefined) return;
+
+        // Return result
+        res.status(204).send();
     });
 
     /////////////
