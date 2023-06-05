@@ -45,10 +45,7 @@ module.exports = {
 
         // Find owner
         var owner = await userRepo.Get(res, ownerID);
-        if (owner === undefined) {
-            res.status(400).json("Failed to find owner.");
-            return undefined;
-        }
+        if (owner === undefined) return;
 
         lock.owner = owner[0]._id;
         lock.active = false;
@@ -60,13 +57,20 @@ module.exports = {
     Update: async function(req, res) {
         // Get lock id, lock and verify result found
         const id = req.body._id;
-        const lock = await Lock.find({ _id: id });
+        var lock = await Lock.find({ _id: id });
         if (lock.length == 0) {
             console.log("Failed to update lock. Could not find lock with ID: " + id);
             res.status(400).json("Couldn't find lock in database.");
             return undefined;
         }
         lock = lock[0];
+        
+        const foundLock = await Lock.find({ serial: req.body.serial });
+        if (foundLock.length != 0) {
+            console.log("Failed to update lock. Lock with serial already exists.");
+            res.status(400).json("Couldn't update lock. Serial already exists.");
+            return undefined;
+        }
 
         // Update properties
         if (req.body.serial != null)
