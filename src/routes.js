@@ -566,7 +566,7 @@ module.exports = function(app, ws) {
             lock = await lockRepo.Get(res, req.body._id);
             if (lock === undefined) return;
             lock = lock[0];
-            if (decoded._id != lock.owner) {
+            if (decoded._id != lock.owner.toString()) {
                 console.log("Non admin user {" + decoded._id + "} tried to delete lock {" + lock._id + "}");
                 res.status(403).json("Invalid rights.");
                 return;
