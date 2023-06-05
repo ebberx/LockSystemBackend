@@ -158,7 +158,7 @@ module.exports = function(app, ws) {
         // Get desired user entity, and remove properties based on rights
         var desiredUser = await userRepo.Get(res, userID);
         if (desiredUser === undefined) return;
-        desiredUser = desiredUser.toObject();
+        desiredUser = desiredUser[0].toObject();
         
         // If calling user is admin, or regular using is getting own info
         if (decoded.is_admin === true || userID == decoded._id) {
