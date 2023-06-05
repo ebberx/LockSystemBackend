@@ -164,33 +164,47 @@ module.exports = function(app, ws) {
             // Read image file from filesystem
             var fs = require('fs');
             const filePath = "images/" + desiredUser[0]._id;
+
+            var foundImage = false;
+            var fileData;
+            try {
+                var fileData = await fs.promises.readFile(filePath + ".jpg", {encoding: 'base64'});
+                if (fileData !== null) foundImage = true;
+                else fileData = await fs.promises.readFile(filePath + ".png", {encoding: 'base64'});
+                if (fileData !== null) foundImage = true;
+            } catch (e) {
+                console.log(e);
+            }
             
-            // Determine file extension
-            let fileType = "";
-            let base64Header = "";
-
-            // Check if JPG
-            await fs.promises.access(filePath + ".jpg").then(() => { 
-                fileType = ".jpg"; 
-                base64Header = "data:image/jpeg;base64,"; 
-            }).catch(() => { 
-                console.log(filePath + ".jpg does not exist"); 
-            })
-            // Check if PNG
-            await fs.promises.access(filePath + ".png").then(() => { 
-                fileType = ".png"; 
-                base64Header = "data:image/png;base64,"; 
-            }).catch(() => { 
-                console.log(filePath + ".png does not exist"); 
-            })
-
-            // Make sure we found a file type
-            if(fileType !== "") {
-                // Get file data
-                const fileData = await fs.promises.readFile(filePath + fileType, {encoding: 'base64'})
-                // Add file data to reply
-                if(fileData !== null)
-                    desiredUser[0].image = base64Header+fileData;
+            // // Determine file extension
+            // let fileType = "";
+            // let base64Header = "";
+            //
+            // // Check if JPG
+            // await fs.promises.access(filePath + ".jpg").then(() => { 
+            //     fileType = ".jpg"; 
+            //     base64Header = "data:image/jpeg;base64,"; 
+            // }).catch(() => { 
+            //     console.log(filePath + ".jpg does not exist"); 
+            // })
+            // // Check if PNG
+            // await fs.promises.access(filePath + ".png").then(() => { 
+            //     fileType = ".png"; 
+            //     base64Header = "data:image/png;base64,"; 
+            // }).catch(() => { 
+            //     console.log(filePath + ".png does not exist"); 
+            // })
+            //
+            // // Make sure we found a file type
+            // if(fileType !== "") {
+            //     // Get file data
+            //     const fileData = await fs.promises.readFile(filePath + fileType, {encoding: 'base64'})
+            //     // Add file data to reply
+            //     if(fileData !== null)
+            //         desiredUser[0].image = base64Header+fileData;
+            // }
+            if (foundImage) {
+                desiredUser[0].image = base64Header + fileData;
             }
         }
 
@@ -205,7 +219,6 @@ module.exports = function(app, ws) {
             desiredUser[0].user_access = undefined;
         }
         desiredUser[0].password = undefined;
-        
         
         // Return results
         res.status(200).json(desiredUser[0]);
