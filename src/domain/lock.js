@@ -6,7 +6,8 @@ const lockSchema = new Schema({
     name: String,
     location: String,
     active: Boolean,
-    owner: ObjectId
+    owner: ObjectId,
+    lock_access: [ObjectId]
 })
 
 module.exports = {

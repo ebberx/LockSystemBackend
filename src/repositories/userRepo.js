@@ -1,4 +1,5 @@
 const { User } = require('../domain/user.js');
+const { Lock } = require('../domain/lock.js');
 const imageData = require('../services/imageData.js');
 const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');
@@ -117,7 +118,7 @@ module.exports = {
     Delete: async function(req, res) {
         // Get id and find user
         const id = req.body._id;
-        const user = await User.find({ _id: id });
+        var user = await User.find({ _id: id });
 
         // Verify user found
         if (user.length == 0) {
@@ -127,11 +128,48 @@ module.exports = {
         }
         user = user[0];
 
-        // Delete user locks - how to implement???
-        // TBI
+        // Delete locks owned by user
+        var locks = Object.values(user.user_access);
+        if (!locks) {
+            console.log("Failed to delete user. User_access does not convert to array.");
+            res.status(500).json("Something went wrong. Please contact a developer.");
+            return undefined;
+        }
+        for (var lockID of locks) {
+            // Find every lock in the user_access array
+            var currentLock = await Lock.find({ _id: lockID });
+            if (currentLock.length == 0) continue;
+            
+            // if the user is the owner of the lock
+            if (currentLock[0].owner == id) {
+                // go through every user with access to the lock
+                var users = Object.values(currentLock[0].lock_access);
+                if (!users) continue;
+                for (var guestID of Object.values(currentLock[0].lock_access)) {
+                    var currentUser = await User.find({ _id: guestID });
+                    if (currentUser.length == 0) continue;
+
+                    // if lock is also present in their user_access
+                    // remove the lock from user_access and save updated user
+                    if (currentUser[0].user_access.includes(lockID)) {
+                        currentUser[0].user_access = currentUser[0].user_access.filter(function (e) { return e !== lockID });
+                        await currentUser[0].save();
+                    }
+                }
+
+                // remove lock
+                await Lock.findByIdAndRemove(currentLock[0]._id.toString());
+            } 
+            // if the user is not the owner of the lock
+            else {
+                // remove userid from locks lock_access array and save updates
+                currentLock[0].lock_access = currentLock[0].lock_access.filter(function (e) { return e !== user._id });
+                await currentLock[0].save();
+            }
+        }
 
         // Remove and return result
-        user.remove();
+        await User.findByIdAndRemove(id);
         return user;
     }
 }

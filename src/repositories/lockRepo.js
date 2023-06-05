@@ -1,3 +1,4 @@
+const { User } = require('../domain/user.js');
 const { Lock } = require('../domain/lock.js');
 const userRepo = require('../repositories/userRepo.js');
 
@@ -83,13 +84,43 @@ module.exports = {
         if (req.body.owner != null)
             lock.owner = req.body.owner;
 
+        if (req.body.lock_access != null)
+            lock.lock_access = req.body.lock_access
+
         // Save changes and return updated lock
         await lock.save();
         return lock;
     },
 
-    // To be implemented:
-    Delete: async function(req, res, id) {
+    // Returns lock if success, undefined if failure
+    Delete: async function(req, res) {
+        // Get id and find lock
+        const id = req.body._id;
+        var lock = await Lock.find({ _id: id });
 
+        // Verify lock found
+        if (lock.length == 0) {
+            console.log("Failed to delete lock. Could not find lock with ID: " + id);
+            res.status(400).json("Couldn't find lock in database.");
+            return undefined;
+        }
+        lock = lock[0];
+
+        // Remove lockid from users with access
+        var users = lock.lock_access;
+        users.push(lock.owner);
+        for (var userID of users) {
+            var currentUser = await User.find({ _id: userID });
+            if (currentUser.length == 0) continue;
+
+            if (currentUser[0].user_access.includes(id)) {
+                currentUser[0].user_access = currentUser[0].user_access.filter(function (e) { return e !== id });
+                await currentUser[0].save();
+            }
+        }
+
+        // Remove lock
+        await Lock.findByIdAndRemove(id);
+        return lock;
     }
 }
