@@ -445,7 +445,7 @@ module.exports = function(app, ws) {
         if (lock === undefined) return;
 
         // If not admin and neither owner nor access, do not send
-        if (decoded.is_admin === false && (lock[0].owner.toString() != decoded._id || lock[0].lock_access.includes(decoded._id) === false)) {
+        if (decoded.is_admin === false && lock[0].owner.toString() != decoded._id && lock[0].lock_access.includes(decoded._id) === false) {
             console.log("User {" + decoded._id + "} tried accessing lock {" + lock[0]._id + "}, but does not have the rights to do so.");
             res.status(403).json("Invalid rights.");
             return;
@@ -484,6 +484,7 @@ module.exports = function(app, ws) {
         if (req.body.owner != null && decoded.is_admin === true) {
             user = await userRepo.Get(res, req.body.owner);
             if (user === undefined) return;
+            ownerID = user[0]._id;
         }
         if (req.body.owner == null) ownerID = user[0]._id;
 
@@ -521,14 +522,23 @@ module.exports = function(app, ws) {
         if (decoded === undefined) return;
 
         // Get lock in question
-        const lock = await lockRepo.Get(res, req.body._id);
+        var lock = await lockRepo.Get(res, req.body._id);
         if (lock === undefined) return;
 
         // Ensure proper rights to update lock
-        if (decoded.is_admin === false && lock.owner != decoded._id) {
+        console.log(lock[0])
+        console.log(lock[0].owner.toString())
+        console.log(decoded._id)
+        console.log("647cad40de0d2139e6a7de94" == "647cad40de0d2139e6a7de94")
+        if (decoded.is_admin === false && lock[0].owner.toString() != decoded._id) {
             console.log("Non admin user tried to update lock. UserID: " + decoded._id);
             res.status(403).json("Invalid rights.");
             return;
+        }
+        if (decoded.is_admin === false) {
+            req.body.serial == null;
+            req.body.lock_access == null;
+            req.body.owner == null;
         }
 
         // Update lock
