@@ -398,7 +398,7 @@ module.exports = function(app, ws) {
     // To be implemented:
     // Get Single
     //
-    app.get('/api/v1/lock:uid', async (req, res) => {
+    app.get('/api/v1/lock/:id', async (req, res) => {
         // Debug
         console.log("[Lock:GetSingle]");
 
