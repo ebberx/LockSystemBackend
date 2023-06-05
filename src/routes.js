@@ -445,8 +445,8 @@ module.exports = function(app, ws) {
         if (lock === undefined) return;
 
         // If not admin and neither owner nor access, do not send
-        if (decoded.is_admin === false && (lock[0].owner != decoded._id || lock[0].lock_access.includes(decoded._id) == false)) {
-            console.log("User {" + decoded._id + "} tried accessing lock {" + lock._id + "}, but does not have the rights to do so.");
+        if (decoded.is_admin === false && (lock[0].owner.toString() != decoded._id || lock[0].lock_access.includes(decoded._id) === false)) {
+            console.log("User {" + decoded._id + "} tried accessing lock {" + lock[0]._id + "}, but does not have the rights to do so.");
             res.status(403).json("Invalid rights.");
             return;
         }

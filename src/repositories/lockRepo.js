@@ -45,10 +45,7 @@ module.exports = {
 
         // Find owner
         var owner = await userRepo.Get(res, ownerID);
-        if (owner === undefined) {
-            res.status(400).json("Failed to find owner.");
-            return undefined;
-        }
+        if (owner === undefined) return;
 
         lock.owner = owner[0]._id;
         lock.active = false;
