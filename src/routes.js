@@ -166,12 +166,19 @@ module.exports = function(app, ws) {
             const filePath = "images/" + desiredUser[0]._id;
 
             var foundImage = false;
+            var base64Header = "";
             var fileData;
             try {
                 var fileData = await fs.promises.readFile(filePath + ".jpg", {encoding: 'base64'});
-                if (fileData !== null) foundImage = true;
+                if (fileData !== null) {
+                    foundImage = true;
+                    base64Header = "data:image/jpeg;base64,";
+                }
                 else fileData = await fs.promises.readFile(filePath + ".png", {encoding: 'base64'});
-                if (fileData !== null) foundImage = true;
+                if (fileData !== null) {
+                    foundImage = true;
+                    base64Header = "data:image/png;base64,";
+                }
             } catch (e) {
                 console.log(e);
             }
