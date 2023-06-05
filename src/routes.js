@@ -272,6 +272,14 @@ module.exports = function(app, ws) {
             userID = decoded._id;
         }
 
+        // turn values into null if not is_admin
+        if (decoded.is_admin === false) {
+            if (req.body.verified != undefined) req.body.verifed = null;
+            if (req.body.photo_path != undefined) req.body.photo_path = null;
+            if (req.body.encoding_path != undefined) req.body.encoding_path = null;
+            if (req.body.is_admin != undefined) req.body.is_admin = null;
+        }
+
         // Update image data if supplied
         if (req.body.image !== undefined) {
             var fs = require('fs').promises;
@@ -395,7 +403,6 @@ module.exports = function(app, ws) {
     });
 
     //
-    // To be implemented:
     // Get Single
     //
     app.get('/api/v1/lock/:id', async (req, res) => {
@@ -412,6 +419,13 @@ module.exports = function(app, ws) {
         // Get desired lock
         var lock = await lockRepo.Get(res, lockID);
         if (lock === undefined) return;
+
+        // If not admin and neither owner nor access, do not send
+        if (decoded.is_admin === false && (lock[0].owner != decoded._id || lock[0].lock_access.includes(decoded._id) == false)) {
+            console.log("User {" + decoded._id + "} tried accessing lock {" + lock._id + "}, but does not have the rights to do so.");
+            res.status(403).json("Invalid rights.");
+            return;
+        }
 
         // return lock
         res.status(200).json(lock);
