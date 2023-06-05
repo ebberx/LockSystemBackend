@@ -170,7 +170,6 @@ module.exports = function(app, ws) {
             var fileData;
             try {
                 var fileData = await fs.promises.readFile(filePath + ".jpg", {encoding: 'base64'});
-                console.log(fileData)
                 if (fileData !== null) {
                     foundImage = true;
                     base64Header = "data:image/jpeg;base64,";
@@ -180,7 +179,6 @@ module.exports = function(app, ws) {
                     foundImage = true;
                     base64Header = "data:image/png;base64,";
                 }
-                console.log(fileData);
             } catch (e) {
                 console.log(e);
             }
@@ -212,9 +210,9 @@ module.exports = function(app, ws) {
             //     if(fileData !== null)
             //         desiredUser[0].image = base64Header+fileData;
             // }
-            console.log(foundImage);
             if (foundImage) {
                 desiredUser[0].image = base64Header + fileData;
+                console.log(desiredUser[0].image);
             }
         }
 
