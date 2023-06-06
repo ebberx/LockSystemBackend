@@ -80,49 +80,55 @@ module.exports = function(app, ws) {
     // Verify User Face
     //
     app.post('/api/v1/verifyFace', async (req, res) => {
-        let bodyData = req.body;
+        try {
+            let bodyData = req.body;
 
-        // Debug
-        console.log("[Functionality:VerifyFace]");
-        console.log(bodyData)
+            // Debug
+            console.log("[Functionality:VerifyFace]");
+            console.log(bodyData)
 
-        const decoded = Token.VerifyToken(req, res);
-        if (decoded === undefined) return;
+            const decoded = Token.VerifyToken(req, res);
+            if (decoded === undefined) return;
 
-        // Ensure required data
-        if (bodyData.image_data === null || bodyData.lock_id === null) {
-            console.log("Wrong arguments supplied.");
-            res.status(400).json("Wrong arguments supplied.");
-            return;
+            // Ensure required data
+            if (bodyData.image_data === null || bodyData.lock_id === null) {
+                console.log("Wrong arguments supplied.");
+                res.status(400).json("Wrong arguments supplied.");
+                return;
+            }
+
+            // Find calling user
+            const user = await userRepo.Get(res, decoded._id);
+            if (user === undefined) return;
+
+            // Find desired lock
+            const lock = await lockRepo.Get(res, bodyData.lock_id);
+            if (lock === undefined) return;
+
+            // Check if user has access to lock
+            if (lock[0].owner != user[0]._id && lock[0].lock_access.includes(user[0]._id) == false) {
+                console.log("User {" + user[0]._id + "} tried to unlock lock {" + bodyData.lock_id + "}, but does not have access.");
+                res.status(400).json("Invalid rights.");
+                return;
+            }
+
+            // Get similarity
+            var similarity = await imageData.Verify(req, res, user[0]);
+            if (similarity === undefined) return;
+
+            // Handle similarity
+            if (similarity >= 0.92) {
+                req.serial = lock[0].serial;
+                req.rpi_message = '{"action": "unlock", "args": {"caller": "' + decoded._id + '"}}'
+                if (ws.Unlock(req, res) == false) return;
+                res.status(200).json("OK - Access granted");
+            } else {
+                res.status(400).json("Failed to verify user.");
+            }
         }
-
-        // Find calling user
-        const user = await userRepo.Get(res, decoded._id);
-        if (user === undefined) return;
-
-        // Find desired lock
-        const lock = await lockRepo.Get(res, bodyData.lock_id);
-        if (lock === undefined) return;
-
-        // Check if user has access to lock
-        if (lock[0].owner != user[0]._id && lock[0].lock_access.includes(user[0]._id) == false) {
-            console.log("User {" + user[0]._id + "} tried to unlock lock {" + bodyData.lock_id + "}, but does not have access.");
-            res.status(400).json("Invalid rights.");
-            return;
-        }
-
-        // Get similarity
-        var similarity = await imageData.Verify(req, res, user[0]);
-        if (similarity === undefined) return;
-
-        // Handle similarity
-        if (similarity >= 0.92) {
-            req.serial = lock[0].serial;
-            req.rpi_message = '{"action": "unlock", "args": {"caller": "' + decoded._id + '"}}'
-            if (ws.Unlock(req, res) == false) return;
-            res.status(200).json("OK - Access granted");
-        } else {
-            res.status(400).json("Failed to verify user.");
+        catch(err) {
+            console.log(err)
+            res.status(500).json("you don goofed somewhere.")
         }
     });
 
