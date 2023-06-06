@@ -584,18 +584,38 @@ module.exports = function(app, ws) {
     //////////////
     /// INVITE ///
     //////////////
-    
     //
     // Get from invite _id
     //
     app.get('api/v1/invite:id', async(req, res) => {
-        res.status(500).json("Not implemented yet.")
+        // Debug
+        console.log("[Invite:GetByID]");
+
+        // Get and verify token
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Get Invite ID
+        const id = req.params.id;
+
+        // Get desired invite
+        var invite = await inviteRepo.Get(res, id);
+        if (invite === undefined) return;
+
+        // If not admin, do not send
+        if (decoded.is_admin === false) {
+            console.log("User {" + decoded._id + "} tried to access invite {" + lock[0]._id + "}, but does not have the rights to do so.");
+            res.status(403).json("Invalid rights.");
+            return;
+        }
+
+        res.status(200).json(invite);
     });
     
     //
     // Get from user
     //
-    app.get('api/v1/invite:uid', async(req, res) => {
+    app.get('api/v1/invite', async(req, res) => {
         res.status(500).json("Not implemented yet.")
     });
 
