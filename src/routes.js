@@ -584,39 +584,146 @@ module.exports = function(app, ws) {
     //////////////
     /// INVITE ///
     //////////////
-    
     //
     // Get from invite _id
     //
-    app.get('api/v1/invite:id', async(req, res) => {
-        res.status(500).json("Not implemented yet.")
+    app.get('/api/v1/invite:id', async(req, res) => {
+        // Debug
+        console.log("[Invite:GetByID]");
+
+        // Get and verify token
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Get Invite ID
+        const id = req.params.id;
+
+        // Get desired invite
+        var invite = await inviteRepo.Get(res, id);
+        if (invite === undefined) return;
+
+        // If not admin, do not send
+        if (decoded.is_admin === false) {
+            console.log("User {" + decoded._id + "} tried to access invite {" + invite[0]._id + "}, but does not have the rights to do so.");
+            res.status(403).json("Invalid rights.");
+            return;
+        }
+
+        res.status(200).json(invite);
     });
     
     //
-    // Get from user
+    // Get from user or lock or both
     //
-    app.get('api/v1/invite:uid', async(req, res) => {
-        res.status(500).json("Not implemented yet.")
+    app.get('/api/v1/invite/:from/:to', async(req, res) => {
+        // Debug
+        console.log("[Invite:GetByFromTo]");
+
+        // Get and verify token
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Get params
+        const from = req.params.from;
+        const to = req.params.to;
+
+        // Get desired invite(s)
+        var result = await inviteRepo.GetByFromTo(res, from, to);
+        if (result === undefined) return;
+
+        // Guard clause
+        if(result.length === 0) {
+            console.log("No invites was found for the given params");
+            res.status(403).json("Invalid rights.");
+            return;
+        }
+
+        // If not admin
+        if (decoded.is_admin === false) {
+            // if user is not owner of the invite, remove from results
+            for(i = 0; i < result.length; i++) {
+                if (decoded._id !== result[i]._id) {
+                    result[i] = undefined;
+                }
+            }
+
+            // If no results are left, return invalid rights
+            if(result.length === 0) {
+                console.log("User {" + decoded._id + "} tried to access invite(s) with params from: " + from + " | to: " + to);
+                res.status(403).json("Invalid rights.");
+                return;
+            }
+        }
+        res.status(200).json(result);
+    });
+
+    //
+    // Send invite from user to user
+    //
+    app.post('/api/v1/sendInvite', async(req, res) => {
+        // Debug
+        console.log("[Invite:SendInvite]");
+        console.log(req.body);
+
+        // Get and verify token
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Get sending user
+        var user = await userRepo.Get(res, decoded._id);
+        if (user === undefined) return;
+
+        // Check if toEmail is supplied
+        if(req.body.toEmail === undefined) {
+            console.log("Invalid arguements supplied.");
+            res.status(400).json("Invalid arguements supplied.");
+            return;
+        }
+
+        // Find user with the email toEmail
+        var toUser = await userRepo.GeGetFromMail(res, req.body.toEmail);
+        if (toUser === undefined) return;
+        
+        // Construct invite
+        var data = { body: { 
+            from: user._id,
+            to: toUser._id,
+            date: Date.now(),
+            accepted: false
+        }};
+        // We cheat a bit and just supply an object with the relevant data instead of the req
+        const invite = Invite.Create(data, res);
+
+        // Return created invite
+        res.status(201).json(invite);
     });
 
     //
     // Create
     //
-    app.post('api/v1/invite', async(req, res) => {
+    app.post('/api/v1/invite', async(req, res) => {
+        // Debug
+        console.log("[Invite:Create]");
+        console.log(req.body);
+
+        // Get and verify token
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
         res.status(500).json("Not implemented yet.")
     });
 
     //
     // Update
     //
-    app.put('api/v1/invite', async(req, res) => {
+    app.put('/api/v1/invite', async(req, res) => {
         res.status(500).json("Not implemented yet.")
     });
 
     //
     // Delete
     //
-    app.delete('api/v1/invite', async(req, res) => {
+    app.delete('/api/v1/invite', async(req, res) => {
         res.status(500).json("Not implemented yet.")
     });
 
