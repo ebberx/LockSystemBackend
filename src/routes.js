@@ -106,7 +106,7 @@ module.exports = function(app, ws) {
             if (lock === undefined) return;
 
             // Check if user has access to lock
-            if (lock[0].owner != user[0]._id && lock[0].lock_access.includes(user[0]._id) == false) {
+            if (lock[0].owner.toString() != user[0]._id.toString() && lock[0].lock_access.includes(user[0]._id) == false) {
                 console.log("User {" + user[0]._id + "} tried to unlock lock {" + bodyData.lock_id + "}, but does not have access.");
                 res.status(400).json("Invalid rights.");
                 return;
