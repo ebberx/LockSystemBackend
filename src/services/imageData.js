@@ -61,6 +61,7 @@ module.exports = {
             output.encoding_path = encoding_path;
         })
 
+        console.log(output)
         return output;
     },
 
