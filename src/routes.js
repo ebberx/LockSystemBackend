@@ -585,6 +585,32 @@ module.exports = function(app, ws) {
     /// INVITE ///
     //////////////
     //
+    // Get all invites (admin)
+    //
+    app.get('/api/v1/invite', async(req, res) => {
+        // Debug
+        console.log("[Invite:GetAll]");
+
+        // Get and verify token
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Make sure supplied token is an admin token
+        if(decoded.is_admin === false) {
+            res.status(403).json("Invalid rights.")
+            console.log("User {" + decoded._id + "} tried to access all invites");
+            return;
+        }
+
+        // Get invites
+        var result = await inviteRepo.Get(res);
+        if (invitresulte === undefined) return;
+
+        // Send invites
+        res.status(200).json(invite);
+    });
+    
+    //
     // Get from invite _id
     //
     app.get('/api/v1/invite:id', async(req, res) => {
@@ -709,6 +735,8 @@ module.exports = function(app, ws) {
         // Get and verify token
         const decoded = Token.VerifyToken(req, res);
         if (decoded === undefined) return;
+
+
 
         res.status(500).json("Not implemented yet.")
     });
