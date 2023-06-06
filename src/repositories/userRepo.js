@@ -101,7 +101,7 @@ module.exports = {
         if (req.body.is_admin != null)
             user.is_admin = req.body.is_admin;
         
-        if (req.body.image_data != null) {
+        if (req.body.image != null) {
             var paths = imageData.Update(req, res, id);
             if (paths === undefined)
                 return undefined;
