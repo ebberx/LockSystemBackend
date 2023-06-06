@@ -658,9 +658,58 @@ module.exports = function(app, ws) {
     });
 
     //
+    // Send invite from user to user
+    //
+    app.post('/api/v1/sendInvite', async(req, res) => {
+        // Debug
+        console.log("[Invite:SendInvite]");
+        console.log(req.body);
+
+        // Get and verify token
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Get sending user
+        var user = await userRepo.Get(res, decoded._id);
+        if (user === undefined) return;
+
+        // Check if toEmail is supplied
+        if(req.body.toEmail === undefined) {
+            console.log("Invalid arguements supplied.");
+            res.status(400).json("Invalid arguements supplied.");
+            return;
+        }
+
+        // Find user with the email toEmail
+        var toUser = await userRepo.GeGetFromMail(res, req.body.toEmail);
+        if (toUser === undefined) return;
+        
+        // Construct invite
+        var data = { body: { 
+            from: user._id,
+            to: toUser._id,
+            date: Date.now(),
+            accepted: false
+        }};
+        // We cheat a bit and just supply an object with the relevant data instead of the req
+        const invite = Invite.Create(data, res);
+
+        // Return created invite
+        res.status(201).json(invite);
+    });
+
+    //
     // Create
     //
     app.post('/api/v1/invite', async(req, res) => {
+        // Debug
+        console.log("[Invite:Create]");
+        console.log(req.body);
+
+        // Get and verify token
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
         res.status(500).json("Not implemented yet.")
     });
 

@@ -36,7 +36,7 @@ module.exports = {
             invite = await Invite.find({ from: from });
         } 
         else {
-            invite = await Invite.find({from: from, to: to });
+            invite = await Invite.find({ from: from, to: to });
         }
 
         // Deal with potential null values
