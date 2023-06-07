@@ -326,49 +326,6 @@ module.exports = function(app, ws) {
             if (req.body.is_admin != undefined) req.body.is_admin = null;
         }
 
-        // Update image data if supplied
-        if (req.body.image !== undefined) {
-            var fs = require('fs').promises;
-
-            // Check if data has the header
-            var data = (req.body.image + "").includes('data:image') ? req.body.image : null;
-            if(data === null) {
-                res.status(400).json("Failed to validate image data.")
-                return;
-            }
-    
-            // Get the file extension
-            const fileType = data.includes("image/png") ? ".png" : data.includes("image/jpeg") ? ".jpg" : null
-            if(fileType === null) {
-                res.status(400).json("Failed to get image file type.")
-                return;
-            }
-    
-            // Remove header from data
-            data = data.replace(/^data:image\/\w+;base64,/, "");
-    
-            var buf = Buffer.from(data, 'base64');
-            // Image file path: Where the image should be saved
-            var imageFilePath =  "images/" + userID + fileType;
-            
-            await fs.writeFile(imageFilePath, buf).then(() => {
-                console.log(imageFilePath + " saved to file!"); 
-                // Add to photo_path to user entry (db)
-                req.body.photo_path = imageFilePath; 
-
-                // Encoding file path: Where the python script should save the encoding
-                const encodingFilePath = "encodings/" + userID + ".enc";
-
-                const success = Verify.GenerateEncoding(imageFilePath, encodingFilePath);
-                // Add encoding file path to user entry (db) in case the encoding was successfully generated
-                if(success === true)
-                    req.body.encoding_path = encodingFilePath;
-
-                console.log(success)
-                console.log("set encoding path to: " + encodingFilePath)
-            });
-        }
-
         // Update user data
         var updatedUser = await userRepo.Update(req, res, userID);
         if (updatedUser === undefined) return;
