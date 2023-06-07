@@ -1,5 +1,6 @@
-const { Lock, Invite } = require('../domain/invite.js');
+const { Invite } = require('../domain/invite.js');
 const { lockRepo } = require('../repositories/lockRepo.js')
+const { userRepo } = require('../repositories/userRepo.js')
 
 module.exports = {
     // Get invite based on the ID
@@ -89,7 +90,7 @@ module.exports = {
         if (to === undefined) return undefined;
 
         // Check if the lock exists
-        const lock = lockRepo.Get(invite.lock);
+        const lock = await lockRepo.Get(invite.lock);
         if(lock === undefined) return undefined;
 
         // Check that the from user is the owner of the lock
