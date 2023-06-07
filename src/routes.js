@@ -82,7 +82,7 @@ module.exports = function(app, ws) {
     //
     app.post('/api/v1/removeAccess', async (req, res) => {
         // Debug
-        console.log("{Functionality:RemoveAccess}");
+        console.log("[Functionality:RemoveAccess]");
         console.log(req.body);
 
         // Token jazz
@@ -132,7 +132,48 @@ module.exports = function(app, ws) {
     // Leave Lock
     //
     app.post('/api/v1/leaveLock', async (req, res) => {
-        res.status(500).json("Not implemented yet.");
+        // Debug
+        console.log("[Functionality:LeaveLock]");
+        console.log(req.body);
+
+        // Token jazz
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Get user in question
+        var user = await userRepo.Get(res, decoded._id);
+        if (user === undefined) return;
+
+        // Get lock in question
+        var lock = await lockRepo.Get(res, req.body.lock_id);
+        if (lock === undefined) return;
+
+        // Remove from lock access
+        if (lock[0].lock_access.includes(decoded._id) == true) {
+            var request = {
+                body: {
+                    _id: req.body.lock_id,
+                    lock_access: lock[0].lockRepo.filter(function (e) { return e.toString() !== decoded._id })
+                }
+            }
+            var newLock = await lockRepo.Update(request, res);
+            if (newLock === undefined) return;
+        }
+
+        // Remove from user_access
+        if (user[0].user_access.includes(lock[0]._id) == true) {
+            var request = {
+                body: {
+                    _id: decoded._id,
+                    user_access: user[0].user_access.filter(function (e) { return e.toString() !== lock[0]._id })
+                }
+            }
+            var newUser = await userRepo.Update(request, res);
+            if (newUser === undefined) return;
+        }
+
+        // Return result
+        res.status(200).json("Successfully left lock");
     });
 
     //
