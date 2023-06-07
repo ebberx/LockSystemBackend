@@ -911,7 +911,7 @@ module.exports = function(app, ws) {
         }  
         else if(response == "deny") {
             // Delete invite
-            inviteRepo.Delete(req, res, invite[0]._id)
+            if(inviteRepo.Delete(req, res, invite[0]._id) === undefined) return;
             res.status(200).json("Invite denied and deleted.");
             console.log("Invite denied and deleted.");
             return;
