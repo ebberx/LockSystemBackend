@@ -110,6 +110,8 @@ module.exports = {
             user.encoding_path = paths.encoding_path;
         }
 
+        console.log(user)
+
         await user.save();
         return user;
     },
