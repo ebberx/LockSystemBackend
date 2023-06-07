@@ -1,6 +1,6 @@
 const { Invite } = require('../domain/invite.js');
-const { lockRepo } = require('../repositories/lockRepo.js')
-const { userRepo } = require('../repositories/userRepo.js')
+const { lockRepo } = require('./lockRepo.js')
+const { userRepo } = require('./userRepo.js')
 
 module.exports = {
     // Get invite based on the ID
