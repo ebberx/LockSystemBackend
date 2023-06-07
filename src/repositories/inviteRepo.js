@@ -97,6 +97,7 @@ module.exports = {
         if(lock[0].owner !== invite.from) { 
             res.status(400).json("Could not create invite. Bad arguments.");
             console.log("'from' user is not the owner of the supplied lock ID.");
+            console.log("lock[0].owner: " + lock[0].owner + " !== " + "invite.from: " + invite.from)
             return undefined;
         }
 
