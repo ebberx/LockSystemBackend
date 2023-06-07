@@ -101,14 +101,16 @@ module.exports = {
         if (req.body.is_admin != null)
             user.is_admin = req.body.is_admin;
         
-        if (req.body.image_data != null) {
-            var paths = imageData.Update(req, res, id);
+        if (req.body.image != null) {
+            var paths = await imageData.Update(req, res, id);
             if (paths === undefined)
                 return undefined;
 
             user.photo_path = paths.photo_path;
             user.encoding_path = paths.encoding_path;
         }
+
+        console.log(user)
 
         await user.save();
         return user;

@@ -1,4 +1,5 @@
 const ws = require('ws');
+// const lockRepo = require('../repositories/lockRepo.js');
 
 class WebSocketService {
     constructor(server) {
@@ -17,12 +18,16 @@ class WebSocketService {
         })
     }
 
-    Unlock(lockSerial, message) {
+    Unlock(req, res) {
+        const lockSerial = req.serial;
+        const message = req.rpi_message;
+
         if (this.sockets.get(lockSerial) && this.sockets.get(lockSerial).readyState == 1) {
             this.sockets.get(lockSerial).send(message);
             return true;
         }
         
+        res.status(400).json("Lock not online.");
         return false;
     }
 }

@@ -14,7 +14,7 @@ function getData(res, imageData) {
 }
 
 function getFileExtension(res, data) {
-    var fileType = data.includes("image/png") ? ".png" : data.includes("image/jpeg") ? ".jpeg" : null;
+    var fileType = data.includes("image/png") ? ".png" : data.includes("image/jpeg") ? ".jpg" : null;
     if (fileType === null) {
         console.log("Failed to get image file type.");
         res.status(400).json("Failed to get image file type.");
@@ -31,12 +31,12 @@ module.exports = {
         var output = {};
 
         // Check if data has header
-        var data = getData(res, req.body.image_data);
-        if (data === undefined) return;
+        var data = getData(res, req.body.image);
+        if (data === undefined) return undefined;
 
         // Get the file extension
         var fileType = getFileExtension(res, data);
-        if (fileType === undefined) return;
+        if (fileType === undefined) return undefined;
 
         // Remove header from data
         data = data.replace(/^data:image\/\w+;base64,/, "");
@@ -61,6 +61,7 @@ module.exports = {
             output.encoding_path = encoding_path;
         })
 
+        console.log(output)
         return output;
     },
 
@@ -95,18 +96,19 @@ module.exports = {
 
             // Encoding file path: Where the python script should save the encoding
             const tempEncodingPath = user._id + "/encoding" + ".enc";
+            console.log("tempEncodingPath:\n" + tempEncodingPath)
+            console.log("imageFilePath:\n" + imageFilePath)
 
             // Generate encodings and compare
             Verify.GenerateEncoding(imageFilePath, tempEncodingPath);
             const output = Verify.CompareEncodings(user.encoding_path, tempEncodingPath);
 
             if (output !== false) {
-                // Delete temp folder after operation
-                execSync("rm -rf " + user._id);
                 similarity = Number(output.toString());
             }
         });
 
+        // Delete temp folder after operation
         if (fs.existsSync(user._id.toString()) === true) {
             console.log("Cleaning up temp folder: " + user._id);
             execSync("rm -rf " + user._id);

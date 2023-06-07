@@ -8,11 +8,12 @@ module.exports = {
     GenerateEncoding: function(imageFilePath, encodingFilePath) {
         try {
             const command = scriptsPath + getEncodingScript + " " + imageFilePath + " " + encodingFilePath;
-            execSync(command);
+            const output = execSync(command);
     
             // Debug
             console.log("Generated encoding with command: ");
             console.log("\"" + command + "\"")
+            console.log("Output:\n" + output)
             return true;
         }
         catch (err) {
