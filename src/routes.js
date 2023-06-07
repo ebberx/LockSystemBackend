@@ -747,7 +747,7 @@ module.exports = function(app, ws) {
         if (user === undefined) return;
 
         // Check if toEmail is supplied
-        if(req.body.toEmail === undefined) {
+        if(req.body.toEmail === undefined || req.body.lock === undefined) {
             console.log("Invalid arguements supplied.");
             res.status(400).json("Invalid arguements supplied.");
             return;
@@ -756,11 +756,16 @@ module.exports = function(app, ws) {
         // Find user with the email toEmail
         var toUser = await userRepo.GetFromMail(res, req.body.toEmail);
         if (toUser === undefined) return;
-        
+
+        // Find lock
+        const lock = await lockRepo.Get(res, req.body.lock);
+        if(lock === undefined) return;
+
         // Construct invite
         var data = { body: { 
-            from: user._id,
+            from: user[0]._id,
             to: toUser._id,
+            lock: lock[0]._id,
             date: Date.now(),
             accepted: false
         }};
