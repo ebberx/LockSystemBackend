@@ -77,6 +77,13 @@ module.exports = function(app, ws) {
     // });
 
     //
+    // Remove Access to Lock
+    //
+    app.post('/api/v1/removeAccess', async (req, res) => {
+        res.status(500).json("Not implemented yet.");
+    });
+
+    //
     // Verify User Face
     //
     app.post('/api/v1/verifyFace', async (req, res) => {
