@@ -73,22 +73,42 @@ module.exports = {
         }
 
         // Update properties
-        if (req.body.serial != null)
+        if (req.body.serial != null && lock.serial != req.body.serial)
             lock.serial = req.body.serial;
 
-        if (req.body.name != null)
+        if (req.body.name != null && lock.name != req.body.name)
             lock.name = req.body.name;
 
-        if (req.body.location != null)
+        if (req.body.location != null && lock.location != req.body.location)
             lock.location = req.body.location;
 
-        if (req.body.active != null)
+        if (req.body.active != null && lock.active != req.body.active)
             lock.active = req.body.active;
 
-        if (req.body.owner != null)
-            lock.owner = req.body.owner;
+        if (req.body.owner != null && lock.owner.toString() != req.body.owner.toString()) {
+            // Get new owner
+            const newOwner = await User.find({_id: req.body.owner});
+            if (newOwner.length == 0) {
+                console.log("Failed to update lock. New owner with ID: {" + req.body.owner + "} does not exist.");
+                res.status(400).json("Couldn't update lock. New owner with provided ID does not exist.");
+                return undefined;
+            }
 
-        if (req.body.lock_access != null)
+            // Get old owner and update user_access if still exists
+            const oldOwner = await User.find({_id: lock.owner});
+            if (oldOwner.length != 0) {
+                oldOwner[0].user_access = oldOwner[0].user_access.filter(function (e) { return e.toString() !== lock._id.toString() });
+                await oldOwner[0].save();
+            }
+
+            // Add lock_id to new owners user_access
+            newOwner[0].user_access.push(lock._id);
+            await newOwner[0].save();
+
+            lock.owner = req.body.owner;
+        }
+
+        if (req.body.lock_access != null && lock.lock_access.toString() != req.body.lock_access.toString())
             lock.lock_access = req.body.lock_access
 
         // Save changes and return updated lock
@@ -118,7 +138,7 @@ module.exports = {
             if (currentUser.length == 0) continue;
 
             if (currentUser[0].user_access.includes(id)) {
-                currentUser[0].user_access = currentUser[0].user_access.filter(function (e) { return e !== id });
+                currentUser[0].user_access = currentUser[0].user_access.filter(function (e) { return e.toString() !== id.toString() });
                 await currentUser[0].save();
             }
         }
