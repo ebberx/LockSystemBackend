@@ -754,7 +754,7 @@ module.exports = function(app, ws) {
         }
 
         // Find user with the email toEmail
-        var toUser = await userRepo.GeGetFromMail(res, req.body.toEmail);
+        var toUser = await userRepo.GetFromMail(res, req.body.toEmail);
         if (toUser === undefined) return;
         
         // Construct invite
