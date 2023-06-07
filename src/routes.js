@@ -772,6 +772,7 @@ module.exports = function(app, ws) {
         }};
         // We cheat a bit and just supply an object with the relevant data instead of the req
         const invite = inviteRepo.Create(data, res);
+        if(invite === undefined) return;
 
         // Return created invite
         res.status(201).json(invite);
