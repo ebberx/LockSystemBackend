@@ -871,6 +871,13 @@ module.exports = function(app, ws) {
         var invite = await inviteRepo.Get(res, inviteID);
         if(invite === undefined) return;
 
+        // Check that invite has not already been accepted
+        if(invite[0].accepted == true) {
+            res.status(400).json("Invite already accepted.");
+            console.log("Invite.accpeted is true. Invite already accepted.");
+            return;
+        }
+
         // Verify / Make sure the user is the one that received the invite
         if(decoded._id.toString() != invite[0].to.toString()) {
             res.status(403).json("403 Forbidden");
