@@ -73,19 +73,19 @@ module.exports = {
         }
 
         // Update properties
-        if (req.body.serial != null)
+        if (req.body.serial != null && lock.serial != req.body.serial)
             lock.serial = req.body.serial;
 
-        if (req.body.name != null)
+        if (req.body.name != null && lock.name != req.body.name)
             lock.name = req.body.name;
 
-        if (req.body.location != null)
+        if (req.body.location != null && lock.location != req.body.location)
             lock.location = req.body.location;
 
-        if (req.body.active != null)
+        if (req.body.active != null && lock.active != req.body.active)
             lock.active = req.body.active;
 
-        if (req.body.owner != null) {
+        if (req.body.owner != null && lock.owner.toString() != req.body.owner.toString()) {
             // Get new owner
             const newOwner = await User.find({_id: req.body.owner});
             if (newOwner.length == 0) {
@@ -108,7 +108,7 @@ module.exports = {
             lock.owner = req.body.owner;
         }
 
-        if (req.body.lock_access != null)
+        if (req.body.lock_access != null && lock.lock_access.toString() != req.body.lock_access.toString())
             lock.lock_access = req.body.lock_access
 
         // Save changes and return updated lock

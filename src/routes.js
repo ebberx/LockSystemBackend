@@ -80,7 +80,29 @@ module.exports = function(app, ws) {
     // Remove Access to Lock
     //
     app.post('/api/v1/removeAccess', async (req, res) => {
-        res.status(500).json("Not implemented yet.");
+        // Debug
+        console.log("{Functionality:RemoveAccess}");
+        console.log(req.body);
+
+        // Token jazz
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Ensure proper rights or owner
+        const lock = await lockRepo.Get(res, req.body.lock_id);
+        if (lock === undefined) return;
+        if (lock[0].owner.toString() != decoded._id.toString() && decoded.is_admin == false) {
+            console.log("User with ID {" + decoded._id + "} tried to remove access from lock with ID {" + lock[0]._id + "} but does not have the rights to do so.");
+            res.status(403).json("Invalid rights.");
+            return;
+        }
+
+        // Find user in question
+        const userToRemove = await userRepo.Get(res, req.body.user_id);
+        if (userToRemove === undefined) return;
+
+        // Check if user has access (user_access and lock_access)
+        
     });
 
     //
@@ -495,7 +517,6 @@ module.exports = function(app, ws) {
     });
 
     //
-    // To be implemented:
     // Update
     //
     app.put('/api/v1/lock', async (req, res) => {
