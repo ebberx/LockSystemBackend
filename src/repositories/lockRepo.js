@@ -55,10 +55,9 @@ module.exports = {
 
     Update: async function(req, res) {
         // Get lock id, lock and verify result found
-        const id = req.body._id;
-        var lock = await Lock.find({ _id: id });
+        var lock = await Lock.find({ _id: req.body._id });
         if (lock.length == 0) {
-            console.log("Failed to update lock. Could not find lock with ID: " + id);
+            console.log("Failed to update lock. Could not find lock with ID: " + req.body._id);
             res.status(400).json("Couldn't find lock in database.");
             return undefined;
         }
@@ -109,8 +108,10 @@ module.exports = {
             lock.owner = req.body.owner;
         }
 
-        if (req.body.lock_access != null && lock.lock_access.toString() != req.body.lock_access.toString())
+        if (req.body.lock_access != null && lock.lock_access.toString() != req.body.lock_access.toString()) {
+            console.log("test user access update")
             lock.lock_access = req.body.lock_access
+        }
 
         // Save changes and return updated lock
         await lock.save();
