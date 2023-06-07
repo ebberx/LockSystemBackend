@@ -883,7 +883,6 @@ module.exports = function(app, ws) {
         // Handle response to invite
         if(response == "accept") {
             // Give 'to' user access to the lock
-            
             // Update user_access on the user to include the lock the user was invited to
             const userToUpdate = await userRepo.Get(res, invite[0].to);
             if(userToUpdate === undefined) return;
@@ -905,7 +904,12 @@ module.exports = function(app, ws) {
             }};
             if(await lockRepo.Update(lockToUpdateData, res) === undefined) return;
 
-            res.status(200).json(invite);
+            // Update invite to be accepted
+            invite[0].accepted = true;
+            invite = await inviteRepo.Update({ body: invite[0] }, res);
+            if(invite === undefined) return;
+
+            res.status(200).json(invite[0]);
             console.log("Invite accepted and lock access given.");
             return;
         }  
