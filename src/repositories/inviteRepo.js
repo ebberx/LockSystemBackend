@@ -94,7 +94,7 @@ module.exports = {
         if(lock === undefined) return undefined;
 
         // Check that the from user is the owner of the lock
-        if(lock[0].owner != invite.from) { 
+        if(lock[0].owner.toString() != invite.from.toString()) { 
             res.status(400).json("Could not create invite. Bad arguments.");
             console.log("'from' user is not the owner of the supplied lock ID.");
             console.log("lock[0].owner: " + lock[0].owner + " !== " + "invite.from: " + invite.from)
@@ -103,7 +103,7 @@ module.exports = {
 
         // Check if the user already has access to the lock
         for(const userID of Object.values(lock[0].lock_access)) {
-            if(userID == invite.to) {
+            if(userID.toString() == invite.to.toString()) {
                 res.status(400).json("Invited user already has access.")
                 console.log("Invited user already has access.")
                 return undefined;
