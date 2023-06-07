@@ -854,17 +854,17 @@ module.exports = function(app, ws) {
     //
     // Send invite from user to user
     //
-    app.post('/api/v1/sendInvite', async(req, res) => {
+    app.post('/api/v1/invite/respond/:id', async(req, res) => {
         // Debug
-        console.log("[Invite:SendInvite]");
+        console.log("[Invite:Respond]");
         console.log(req.body);
 
         // Get and verify token
         const decoded = Token.VerifyToken(req, res);
         if (decoded === undefined) return;
 
-        
-        res.status(201).json(invite);
+        res.status(500).json("Not implemented yet.")
+        //res.status(200).json(invite);
     });
 
     //
