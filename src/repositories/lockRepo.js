@@ -53,7 +53,6 @@ module.exports = {
         return lock;
     },
 
-    // To be implemented:
     Update: async function(req, res) {
         // Get lock id, lock and verify result found
         const id = req.body._id;
@@ -64,14 +63,16 @@ module.exports = {
             return undefined;
         }
         lock = lock[0];
-        
-        const foundLock = await Lock.find({ serial: req.body.serial });
-        if (foundLock.length != 0) {
-            console.log("Failed to update lock. Lock with serial already exists.");
-            res.status(400).json("Couldn't update lock. Serial already exists.");
-            return undefined;
+       
+        if (lock.serial != req.body.serial) {
+            const foundLock = await Lock.find({ serial: req.body.serial });
+            if (foundLock.length != 0) {
+                console.log("Failed to update lock. Lock with serial already exists.");
+                res.status(400).json("Couldn't update lock. Serial already exists.");
+                return undefined;
+            }
         }
-
+        
         // Update properties
         if (req.body.serial != null && lock.serial != req.body.serial)
             lock.serial = req.body.serial;
