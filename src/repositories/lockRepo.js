@@ -109,7 +109,6 @@ module.exports = {
         }
 
         if (req.body.lock_access != null && lock.lock_access.toString() != req.body.lock_access.toString()) {
-            console.log("test user access update")
             lock.lock_access = req.body.lock_access
         }
 

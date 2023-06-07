@@ -153,7 +153,7 @@ module.exports = function(app, ws) {
             var request = {
                 body: {
                     _id: req.body.lock_id,
-                    lock_access: lock[0].lockRepo.filter(function (e) { return e.toString() !== decoded._id })
+                    lock_access: lock[0].lock_access.filter(function (e) { return e.toString() !== decoded._id })
                 }
             }
             var newLock = await lockRepo.Update(request, res);
