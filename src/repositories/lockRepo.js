@@ -97,7 +97,7 @@ module.exports = {
             // Get old owner and update user_access if still exists
             const oldOwner = await User.find({_id: lock.owner});
             if (oldOwner.length != 0) {
-                oldOwner[0].user_access = oldOwner[0].user_access.filter(function (e) { return e != lock._id });
+                oldOwner[0].user_access = oldOwner[0].user_access.filter(function (e) { return e.toString() !== lock._id.toString() });
                 await oldOwner[0].save();
             }
 
@@ -138,7 +138,7 @@ module.exports = {
             if (currentUser.length == 0) continue;
 
             if (currentUser[0].user_access.includes(id)) {
-                currentUser[0].user_access = currentUser[0].user_access.filter(function (e) { return e !== id });
+                currentUser[0].user_access = currentUser[0].user_access.filter(function (e) { return e.toString() !== id.toString() });
                 await currentUser[0].save();
             }
         }
