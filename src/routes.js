@@ -90,7 +90,7 @@ module.exports = function(app, ws) {
         if (decoded === undefined) return;
 
         // Ensure proper rights or owner
-        const lock = await lockRepo.Get(res, req.body.lock_id);
+        var lock = await lockRepo.Get(res, req.body.lock_id);
         if (lock === undefined) return;
         if (lock[0].owner.toString() != decoded._id.toString() && decoded.is_admin == false) {
             console.log("User with ID {" + decoded._id + "} tried to remove access from lock with ID {" + lock[0]._id + "} but does not have the rights to do so.");
@@ -99,11 +99,32 @@ module.exports = function(app, ws) {
         }
 
         // Find user in question
-        const userToRemove = await userRepo.Get(res, req.body.user_id);
+        var userToRemove = await userRepo.Get(res, req.body.user_id);
         if (userToRemove === undefined) return;
 
         // Check if user has access (user_access and lock_access)
-        
+        if (lock[0].lock_access.includes(userToRemove[0]._id) == true) {
+            var request = {
+                body: {
+                    _id: req.body.user_id,
+                    lock_access: lock[0].lock_access.filter(function (e) { return e.toString() !== userToRemove[0]._id.toString() })
+                }
+            }
+            lock = await lockRepo.Update(request, res);
+            if (lock === undefined) return;
+        }
+
+        if (userToRemove[0].user_access.includes(lock[0]._id) == true) {
+            var request = {
+                body: {
+                    user_access: userToRemove[0].user_access.filter(function (e) { return e.toString() !== lock[0]._id.toString() })
+                }
+            } 
+            userToRemove = await userRepo.Update(request, res, userToRemove[0]._id);
+            if (userToRemove === undefined) return;
+        }
+
+        res.status(200).json("Access removed.");
     });
 
     //
