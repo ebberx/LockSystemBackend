@@ -106,12 +106,13 @@ module.exports = function(app, ws) {
         if (lock[0].lock_access.includes(userToRemove[0]._id) == true) {
             var request = {
                 body: {
-                    _id: req.body.user_id,
+                    _id: req.body.lock_id,
                     lock_access: lock[0].lock_access.filter(function (e) { return e.toString() !== userToRemove[0]._id.toString() })
                 }
             }
-            lock = await lockRepo.Update(request, res);
-            if (lock === undefined) return;
+            console.log(request.body);
+            var newLock = await lockRepo.Update(request, res);
+            if (newLock === undefined) return;
         }
 
         if (userToRemove[0].user_access.includes(lock[0]._id) == true) {
@@ -440,6 +441,7 @@ module.exports = function(app, ws) {
 
         // Query locks based on rights
         var allLocks = [];
+        console.log(decoded._id)
         if (decoded.is_admin === true) {
             allLocks = await lockRepo.Get(res);
             if (allLocks === undefined) return;
