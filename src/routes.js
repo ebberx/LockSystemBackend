@@ -805,6 +805,9 @@ module.exports = function(app, ws) {
     //
     // Send invite from user to user
     //
+    // TODO: Check if invite with matching data has already been created
+    //       so as to avoid multiple invites to the same lock.
+    //
     app.post('/api/v1/invite/send', async(req, res) => {
         // Debug
         console.log("[Invite:SendInvite]");
