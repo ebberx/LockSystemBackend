@@ -770,8 +770,8 @@ module.exports = function(app, ws) {
             date: Date.now(),
             accepted: false
         }};
-        console.log("Creating invite with data:\n"+data);
-        
+        console.log("Creating invite with data:\n"+data.body);
+
         // We cheat a bit and just supply an object with the relevant data instead of the req
         const invite = await inviteRepo.Create(data, res);
         if(invite === undefined) return;
