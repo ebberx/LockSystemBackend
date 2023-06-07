@@ -121,7 +121,7 @@ module.exports = {
     Update: async function(req, res) {
         const id = req.body._id;
 
-        const invite = await Invite.find({ _id: id });
+        var invite = await Invite.find({ _id: id });
         if (invite === null) {
             console.log("Failed to update invite. Could not find invite with ID: " + id);
             res.status(400).json("Couldn't find invite in database.");
