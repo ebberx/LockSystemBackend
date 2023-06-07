@@ -96,18 +96,19 @@ module.exports = {
 
             // Encoding file path: Where the python script should save the encoding
             const tempEncodingPath = user._id + "/encoding" + ".enc";
+            console.log("tempEncodingPath:\n" + tempEncodingPath)
+            console.log("imageFilePath:\n" + imageFilePath)
 
             // Generate encodings and compare
             Verify.GenerateEncoding(imageFilePath, tempEncodingPath);
             const output = Verify.CompareEncodings(user.encoding_path, tempEncodingPath);
 
             if (output !== false) {
-                // Delete temp folder after operation
-                execSync("rm -rf " + user._id);
                 similarity = Number(output.toString());
             }
         });
 
+        // Delete temp folder after operation
         if (fs.existsSync(user._id.toString()) === true) {
             console.log("Cleaning up temp folder: " + user._id);
             execSync("rm -rf " + user._id);
