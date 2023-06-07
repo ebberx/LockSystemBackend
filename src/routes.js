@@ -3,6 +3,7 @@ const Token = require('./services/token.js');
 const imageData = require('./services/imageData.js');
 const userRepo = require('./repositories/userRepo.js');
 const lockRepo = require('./repositories/lockRepo.js');
+const inviteRepo = require('./repositories/inviteRepo.js')
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
 dotenv.config({'path': 'config/settings.env'});
@@ -770,7 +771,7 @@ module.exports = function(app, ws) {
             accepted: false
         }};
         // We cheat a bit and just supply an object with the relevant data instead of the req
-        const invite = Invite.Create(data, res);
+        const invite = inviteRepo.Create(data, res);
 
         // Return created invite
         res.status(201).json(invite);
