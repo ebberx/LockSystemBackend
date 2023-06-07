@@ -78,105 +78,6 @@ module.exports = function(app, ws) {
     // });
 
     //
-    // Remove Access to Lock
-    //
-    app.post('/api/v1/removeAccess', async (req, res) => {
-        // Debug
-        console.log("[Functionality:RemoveAccess]");
-        console.log(req.body);
-
-        // Token jazz
-        const decoded = Token.VerifyToken(req, res);
-        if (decoded === undefined) return;
-
-        // Ensure proper rights or owner
-        var lock = await lockRepo.Get(res, req.body.lock_id);
-        if (lock === undefined) return;
-        if (lock[0].owner.toString() != decoded._id.toString() && decoded.is_admin == false) {
-            console.log("User with ID {" + decoded._id + "} tried to remove access from lock with ID {" + lock[0]._id + "} but does not have the rights to do so.");
-            res.status(403).json("Invalid rights.");
-            return;
-        }
-
-        // Find user in question
-        var userToRemove = await userRepo.Get(res, req.body.user_id);
-        if (userToRemove === undefined) return;
-
-        // Check if user has access (user_access and lock_access)
-        if (lock[0].lock_access.includes(userToRemove[0]._id) == true) {
-            var request = {
-                body: {
-                    _id: req.body.lock_id,
-                    lock_access: lock[0].lock_access.filter(function (e) { return e.toString() !== userToRemove[0]._id.toString() })
-                }
-            }
-            console.log(request.body);
-            var newLock = await lockRepo.Update(request, res);
-            if (newLock === undefined) return;
-        }
-
-        if (userToRemove[0].user_access.includes(lock[0]._id) == true) {
-            var request = {
-                body: {
-                    user_access: userToRemove[0].user_access.filter(function (e) { return e.toString() !== lock[0]._id.toString() })
-                }
-            } 
-            userToRemove = await userRepo.Update(request, res, userToRemove[0]._id);
-            if (userToRemove === undefined) return;
-        }
-
-        res.status(200).json("Access removed.");
-    });
-
-    //
-    // Leave Lock
-    //
-    app.post('/api/v1/leaveLock', async (req, res) => {
-        // Debug
-        console.log("[Functionality:LeaveLock]");
-        console.log(req.body);
-
-        // Token jazz
-        const decoded = Token.VerifyToken(req, res);
-        if (decoded === undefined) return;
-
-        // Get user in question
-        var user = await userRepo.Get(res, decoded._id);
-        if (user === undefined) return;
-
-        // Get lock in question
-        var lock = await lockRepo.Get(res, req.body.lock_id);
-        if (lock === undefined) return;
-
-        // Remove from lock access
-        if (lock[0].lock_access.includes(decoded._id) == true) {
-            var request = {
-                body: {
-                    _id: req.body.lock_id,
-                    lock_access: lock[0].lock_access.filter(function (e) { return e.toString() !== decoded._id })
-                }
-            }
-            var newLock = await lockRepo.Update(request, res);
-            if (newLock === undefined) return;
-        }
-
-        // Remove from user_access
-        if (user[0].user_access.includes(lock[0]._id) == true) {
-            var request = {
-                body: {
-                    _id: decoded._id,
-                    user_access: user[0].user_access.filter(function (e) { return e.toString() !== lock[0]._id })
-                }
-            }
-            var newUser = await userRepo.Update(request, res);
-            if (newUser === undefined) return;
-        }
-
-        // Return result
-        res.status(200).json("Successfully left lock");
-    });
-
-    //
     // Verify User Face
     //
     app.post('/api/v1/verifyFace', async (req, res) => {
@@ -654,6 +555,105 @@ module.exports = function(app, ws) {
 
         // Return result
         res.status(204).send();
+    });
+
+    //
+    // Remove Access to Lock
+    //
+    app.post('/api/v1/lock/remove_access', async (req, res) => {
+        // Debug
+        console.log("[Functionality:RemoveAccess]");
+        console.log(req.body);
+
+        // Token jazz
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Ensure proper rights or owner
+        var lock = await lockRepo.Get(res, req.body.lock_id);
+        if (lock === undefined) return;
+        if (lock[0].owner.toString() != decoded._id.toString() && decoded.is_admin == false) {
+            console.log("User with ID {" + decoded._id + "} tried to remove access from lock with ID {" + lock[0]._id + "} but does not have the rights to do so.");
+            res.status(403).json("Invalid rights.");
+            return;
+        }
+
+        // Find user in question
+        var userToRemove = await userRepo.Get(res, req.body.user_id);
+        if (userToRemove === undefined) return;
+
+        // Check if user has access (user_access and lock_access)
+        if (lock[0].lock_access.includes(userToRemove[0]._id) == true) {
+            var request = {
+                body: {
+                    _id: req.body.lock_id,
+                    lock_access: lock[0].lock_access.filter(function (e) { return e.toString() !== userToRemove[0]._id.toString() })
+                }
+            }
+            console.log(request.body);
+            var newLock = await lockRepo.Update(request, res);
+            if (newLock === undefined) return;
+        }
+
+        if (userToRemove[0].user_access.includes(lock[0]._id) == true) {
+            var request = {
+                body: {
+                    user_access: userToRemove[0].user_access.filter(function (e) { return e.toString() !== lock[0]._id.toString() })
+                }
+            } 
+            userToRemove = await userRepo.Update(request, res, userToRemove[0]._id);
+            if (userToRemove === undefined) return;
+        }
+
+        res.status(200).json("Access removed.");
+    });
+
+    //
+    // Leave Lock
+    //
+    app.post('/api/v1/lock/leave', async (req, res) => {
+        // Debug
+        console.log("[Functionality:LeaveLock]");
+        console.log(req.body);
+
+        // Token jazz
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Get user in question
+        var user = await userRepo.Get(res, decoded._id);
+        if (user === undefined) return;
+
+        // Get lock in question
+        var lock = await lockRepo.Get(res, req.body.lock_id);
+        if (lock === undefined) return;
+
+        // Remove from lock access
+        if (lock[0].lock_access.includes(decoded._id) == true) {
+            var request = {
+                body: {
+                    _id: req.body.lock_id,
+                    lock_access: lock[0].lock_access.filter(function (e) { return e.toString() !== decoded._id })
+                }
+            }
+            var newLock = await lockRepo.Update(request, res);
+            if (newLock === undefined) return;
+        }
+
+        // Remove from user_access
+        if (user[0].user_access.includes(lock[0]._id) == true) {
+            var request = {
+                body: {
+                    _id: decoded._id,
+                    user_access: user[0].user_access.filter(function (e) { return e.toString() !== lock[0]._id })
+                }
+            }
+            var newUser = await userRepo.Update(request, res);
+            if (newUser === undefined) return;
+        }
+
+        // Return result
+        res.status(200).json("Successfully left lock");
     });
     
     //////////////
