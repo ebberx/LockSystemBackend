@@ -852,9 +852,9 @@ module.exports = function(app, ws) {
     });
 
     //
-    // Send invite from user to user
+    // Respond to invite from one user to another user
     //
-    app.post('/api/v1/invite/respond/:id', async(req, res) => {
+    app.put('/api/v1/invite/respond/:id/:response', async(req, res) => {
         // Debug
         console.log("[Invite:Respond]");
         console.log(req.body);
@@ -863,8 +863,64 @@ module.exports = function(app, ws) {
         const decoded = Token.VerifyToken(req, res);
         if (decoded === undefined) return;
 
-        res.status(500).json("Not implemented yet.")
-        //res.status(200).json(invite);
+        // Get params 
+        const inviteID = req.params.id;
+        const response = req.params.response.toLowerCase();
+
+        // Find the invite by ID from URL
+        const invite = await inviteRepo.Get(res, id);
+        if(invite === undefined) return;
+
+        // Verify / Make sure the user is the one that received the invite
+        if(decoded._id.toString() != invite[0].to.toString()) {
+            res.status(403).json("403 Forbidden");
+            console.log("User is not the receiver of the invite.");
+            return;
+        }
+
+        // TODO: We don't check if the 'from' and 'to' users still exist
+
+        // Handle response to invite
+        if(response == "accept") {
+            // Give 'to' user access to the lock
+            
+            // Update user_access on the user to include the lock the user was invited to
+            const userToUpdate = await userRepo.Get(res, invite[0].to);
+            if(userToUpdate === undefined) return;
+
+            userToUpdate[0].user_access.push(invite[0].lock);
+            const userToUpdateData = { body: {
+                user_access: userToUpdate[0].user_access
+            }};
+            if(await userRepo.Update(userToUpdateData, res, invite[0].to) === undefined) return;
+
+            // Update lock_access on the lock to include the user that was invited
+            const lockToUpdate = await lockRepo.Get(res, invite[0].lock);
+            if(lockToUpdate === undefined) return;
+
+            lockToUpdate[0].lock_access.push(invite[0].to);
+            const lockToUpdateData = { body: {
+                _id: lockToUpdate[0]._id,
+                lock_access: lockToUpdate[0].lock_access
+            }};
+            if(await lockRepo.Update(lockToUpdateData, res) === undefined) return;
+
+            res.status(200).json(invite);
+            console.log("Invite accepted and lock access given.");
+            return;
+        }  
+        else if(response == "deny") {
+            // Delete invite
+            inviteRepo.Delete(req, res, invite[0]._id)
+            res.status(200).json("Invite denied and deleted.");
+            console.log("Invite denied and deleted.");
+            return;
+        } else {
+            // Wrong arguments
+            res.status(400).json("Wrong parameter supplied. Either 'accept' or 'deny' the invite.");
+            console.log("Wrong parameter supplied. Either 'accept' or 'deny'");
+            return;
+        }
     });
 
     //
