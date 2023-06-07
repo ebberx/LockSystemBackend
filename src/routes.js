@@ -505,10 +505,6 @@ module.exports = function(app, ws) {
         if (lock === undefined) return;
 
         // Ensure proper rights to update lock
-        console.log(lock[0])
-        console.log(lock[0].owner.toString())
-        console.log(decoded._id)
-        console.log("647cad40de0d2139e6a7de94" == "647cad40de0d2139e6a7de94")
         if (decoded.is_admin === false && lock[0].owner.toString() != decoded._id) {
             console.log("Non admin user tried to update lock. UserID: " + decoded._id);
             res.status(403).json("Invalid rights.");
