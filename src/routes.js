@@ -868,7 +868,7 @@ module.exports = function(app, ws) {
         const response = req.params.response.toLowerCase();
 
         // Find the invite by ID from URL
-        const invite = await inviteRepo.Get(res, id);
+        const invite = await inviteRepo.Get(res, inviteID);
         if(invite === undefined) return;
 
         // Verify / Make sure the user is the one that received the invite
