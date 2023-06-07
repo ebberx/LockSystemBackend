@@ -742,10 +742,12 @@ module.exports = function(app, ws) {
         // Get and verify token
         const decoded = Token.VerifyToken(req, res);
         if (decoded === undefined) return;
+        console.log("token")
 
         // Get sending user
         var user = await userRepo.Get(res, decoded._id);
         if (user === undefined) return;
+        console.log("user")
 
         // Check if toEmail is supplied
         if(req.body.toEmail === undefined || req.body.lock === undefined) {
@@ -753,14 +755,18 @@ module.exports = function(app, ws) {
             res.status(400).json("Invalid arguements supplied.");
             return;
         }
+        console.log("check toemail")
 
         // Find user with the email toEmail
         var toUser = await userRepo.GetFromMail(res, req.body.toEmail);
         if (toUser === undefined) return;
 
+        console.log("toUser")
         // Find lock
         const lock = await lockRepo.Get(res, req.body.lock);
         if(lock === undefined) return;
+
+        console.log("lock")
 
         // Construct invite
         var data = { body: { 
@@ -773,6 +779,8 @@ module.exports = function(app, ws) {
         // We cheat a bit and just supply an object with the relevant data instead of the req
         const invite = inviteRepo.Create(data, res);
         if(invite === undefined) return;
+
+        console.log("Create invite")
 
         // Return created invite
         res.status(201).json(invite);
