@@ -805,7 +805,7 @@ module.exports = function(app, ws) {
     //
     // Send invite from user to user
     //
-    app.post('/api/v1/sendInvite', async(req, res) => {
+    app.post('/api/v1/invite/send', async(req, res) => {
         // Debug
         console.log("[Invite:SendInvite]");
         console.log(req.body);
@@ -848,6 +848,22 @@ module.exports = function(app, ws) {
         if(invite === undefined) return;
 
         // Return created invite
+        res.status(201).json(invite);
+    });
+
+    //
+    // Send invite from user to user
+    //
+    app.post('/api/v1/sendInvite', async(req, res) => {
+        // Debug
+        console.log("[Invite:SendInvite]");
+        console.log(req.body);
+
+        // Get and verify token
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        
         res.status(201).json(invite);
     });
 
