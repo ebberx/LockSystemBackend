@@ -583,7 +583,7 @@ module.exports = function(app, ws) {
 
         // Get invites
         var result = await inviteRepo.Get(res);
-        if (invitresulte === undefined) return;
+        if (result === undefined) return;
 
         // Send invites
         res.status(200).json(invite);
@@ -715,9 +715,16 @@ module.exports = function(app, ws) {
         const decoded = Token.VerifyToken(req, res);
         if (decoded === undefined) return;
 
+        // Find user based on token
+        var user = await userRepo.Get(res, decoded._id);
+        if (user === undefined) return;
 
+        // Create lock and add to owner user_access
+        const invite = await inviteRepo.Create(req, res);
+        if (invite === undefined) return;
 
-        res.status(500).json("Not implemented yet.")
+        // Return invite
+        res.status(201).json(invite);
     });
 
     //

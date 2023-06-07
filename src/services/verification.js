@@ -14,6 +14,7 @@ module.exports = {
             console.log("Generated encoding with command: ");
             console.log("\"" + command + "\"")
             console.log("Output:\n" + output)
+            
             return true;
         }
         catch (err) {
