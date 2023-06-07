@@ -647,7 +647,51 @@ module.exports = function(app, ws) {
         if (decoded.is_admin === false) {
             // if user is not owner of the invite, remove from results
             for(i = 0; i < result.length; i++) {
-                if (decoded._id !== result[i]._id) {
+                if (decoded._id !== result[i].from) {
+                    result[i] = undefined;
+                }
+            }
+
+            // If no results are left, return invalid rights
+            if(result.length === 0) {
+                console.log("User {" + decoded._id + "} tried to access invite(s) with params from: " + from + " | to: " + to);
+                res.status(403).json("Invalid rights.");
+                return;
+            }
+        }
+        res.status(200).json(result);
+    });
+
+    //
+    // Get from lock ID
+    //
+    app.get('/api/v1/invite/:lockID', async(req, res) => {
+        // Debug
+        console.log("[Invite:GetByLockID]");
+
+        // Get and verify token
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Get params
+        const lockID = req.params.lockID;
+
+        // Get desired invite(s)
+        var result = await inviteRepo.GetByLockID(res, lockID);
+        if (result === undefined) return;
+
+        // Guard clause
+        if(result === null) {
+            console.log("No invites was found for the given params");
+            res.status(403).json("Invalid rights.");
+            return;
+        }
+
+        // If not admin
+        if (decoded.is_admin === false) {
+            // if user is not owner of the invite, remove from results
+            for(i = 0; i < result.length; i++) {
+                if (decoded._id !== result[i].from) {
                     result[i] = undefined;
                 }
             }
