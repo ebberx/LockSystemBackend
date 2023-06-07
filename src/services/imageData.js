@@ -31,12 +31,12 @@ module.exports = {
         var output = {};
 
         // Check if data has header
-        var data = getData(res, req.body.image_data);
-        if (data === undefined) return;
+        var data = getData(res, req.body.image);
+        if (data === undefined) return undefined;
 
         // Get the file extension
         var fileType = getFileExtension(res, data);
-        if (fileType === undefined) return;
+        if (fileType === undefined) return undefined;
 
         // Remove header from data
         data = data.replace(/^data:image\/\w+;base64,/, "");
