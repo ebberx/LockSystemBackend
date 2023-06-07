@@ -909,7 +909,7 @@ module.exports = function(app, ws) {
             invite = await inviteRepo.Update({ body: invite[0] }, res);
             if(invite === undefined) return;
 
-            res.status(200).json(invite[0]);
+            res.status(200).json(invite);
             console.log("Invite accepted and lock access given.");
             return;
         }  
