@@ -43,7 +43,11 @@ module.exports = function(app, ws) {
             if (result) {
                 const token = Token.GenerateAccessToken(user._id, user.email, user.is_admin);
                 console.log("Login success.");
-                res.status(200).json(token);
+                const output = {
+                    token: token,
+                    _id: user._id
+                }
+                res.status(200).json(output);
             } 
             // Password is not valid
             else {
