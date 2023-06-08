@@ -393,17 +393,18 @@ module.exports = function(app, ws) {
         if (user === undefined) return;
 
         // Query locks based on rights
-        var allLocks = [];
+        var allLocks;
         console.log(decoded._id)
         if (decoded.is_admin === true) {
             allLocks = await lockRepo.Get(res);
             if (allLocks === undefined) return;
             console.log("Sent all lock data to admin.");
         } else {
+            allLocks = [];
             for (const lockID of user[0].user_access) {
                 var lock = await lockRepo.Get(res, lockID);
                 if (lock === undefined) return;
-                allLocks.push(lock);
+                allLocks.push(lock[0]);
             }
             console.log("Sent user_access locks to normal user.");
         }
