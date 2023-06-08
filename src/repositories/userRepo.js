@@ -158,7 +158,7 @@ module.exports = {
                     // if lock is also present in their user_access
                     // remove the lock from user_access and save updated user
                     if (currentUser[0].user_access.includes(lockID)) {
-                        currentUser[0].user_access = currentUser[0].user_access.filter(function (e) { return e !== lockID });
+                        currentUser[0].user_access = currentUser[0].user_access.filter(function (e) { return e.toString() != lockID.toString() });
                         await currentUser[0].save();
                     }
                 }
@@ -171,7 +171,7 @@ module.exports = {
             else {
                 console.log("User is not owner of lock:\nLock_access pre: " + currentLock[0].lock_access);
                 // remove userid from locks lock_access array and save updates
-                currentLock[0].lock_access = currentLock[0].lock_access.filter(function (e) { return e.toString() !== user._id.toString() });
+                currentLock[0].lock_access = currentLock[0].lock_access.filter(function (e) { return e.toString() != id.toString() });
                 console.log("Lock_access post: " + currentLock[0].lock_access);
                 await currentLock[0].save();
             }
