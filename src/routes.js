@@ -677,14 +677,14 @@ module.exports = function(app, ws) {
         if (lock === undefined) return;
 
         // If not admin and not owner, do not send
-        if (decoded.is_admin === false && lock[0].owner.toString() != decoded._id) {
+        if (decoded.is_admin === false && lock[0].owner.toString() != decoded._id.toString()) {
             console.log("User {" + decoded._id + "} tried getting logs for lock {" + lock[0]._id + "}, but does not have the rights to do so.");
             res.status(403).json("Invalid rights.");
             return;
         }
 
         // Get logs
-        const logs = await logRepo.Get(lock[0]._id, res);
+        const logs = await logRepo.Get(req.params.id, res);
         if (logs === undefined) return;
 
         // Return logs
@@ -1046,4 +1046,13 @@ module.exports = function(app, ws) {
         res.status(200).json("OK - Online");
         return;
     });
+
+    //
+    // Test create log
+    //
+    // app.post('/api/v1/debug/testCreateLog', async (req, res) => {
+    //     const log = await logRepo.Create(req, res);
+    //     if (log === undefined) return;
+    //     res.status(200).json(log);
+    // });
 }

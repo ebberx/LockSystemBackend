@@ -1,6 +1,4 @@
 const { Log } = require('../domain/log.js');
-const lockRepo = require('../repositories/lockRepo.js');
-const userRepo = require('../repositories/userRepo.js');
 
 module.exports = {
     // Get logs based on lock_id
@@ -24,6 +22,7 @@ module.exports = {
 
             // Set date
             log.date = Date.now();
+            log.message = log.date.toString() + ": " + log.message;
 
             log.save();
             return log;
