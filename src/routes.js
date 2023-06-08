@@ -1,9 +1,9 @@
-const Verify = require('./services/verification.js');
 const Token = require('./services/token.js');
 const imageData = require('./services/imageData.js');
 const userRepo = require('./repositories/userRepo.js');
 const lockRepo = require('./repositories/lockRepo.js');
 const inviteRepo = require('./repositories/inviteRepo.js')
+const logRepo = require('./repositories/logRepo.js');
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
 dotenv.config({'path': 'config/settings.env'});
@@ -393,17 +393,18 @@ module.exports = function(app, ws) {
         if (user === undefined) return;
 
         // Query locks based on rights
-        var allLocks = [];
+        var allLocks;
         console.log(decoded._id)
         if (decoded.is_admin === true) {
             allLocks = await lockRepo.Get(res);
             if (allLocks === undefined) return;
             console.log("Sent all lock data to admin.");
         } else {
+            allLocks = [];
             for (const lockID of user[0].user_access) {
                 var lock = await lockRepo.Get(res, lockID);
                 if (lock === undefined) return;
-                allLocks.push(lock);
+                allLocks.push(lock[0]);
             }
             console.log("Sent user_access locks to normal user.");
         }
@@ -659,6 +660,37 @@ module.exports = function(app, ws) {
         // Return result
         res.status(200).json("Successfully left lock");
     });
+
+    //
+    // Get All Logs for a Lock
+    //
+    app.get('/api/v1/lock/logs/:id', async (req, res) => {
+        // Debug
+        console.log("[Lock:GetLogs]");
+        console.log(req.params.id);
+
+        // Token jazz
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Get lock in question
+        const lock = await lockRepo.Get(res, req.params.id);
+        if (lock === undefined) return;
+
+        // If not admin and not owner, do not send
+        if (decoded.is_admin === false && lock[0].owner.toString() != decoded._id.toString()) {
+            console.log("User {" + decoded._id + "} tried getting logs for lock {" + lock[0]._id + "}, but does not have the rights to do so.");
+            res.status(403).json("Invalid rights.");
+            return;
+        }
+
+        // Get logs
+        const logs = await logRepo.Get(req.params.id, res);
+        if (logs === undefined) return;
+
+        // Return logs
+        res.status(200).json(logs);
+    })
     
     //////////////
     /// INVITE ///
@@ -978,8 +1010,6 @@ module.exports = function(app, ws) {
     app.delete('/api/v1/invite', async(req, res) => {
         res.status(500).json("Not implemented yet.")
     });
-
-    /////////////
     /// DEBUG ///
     /////////////
     //
@@ -1017,4 +1047,13 @@ module.exports = function(app, ws) {
         res.status(200).json("OK - Online");
         return;
     });
+
+    //
+    // Test create log
+    //
+    // app.post('/api/v1/debug/testCreateLog', async (req, res) => {
+    //     const log = await logRepo.Create(req, res);
+    //     if (log === undefined) return;
+    //     res.status(200).json(log);
+    // });
 }

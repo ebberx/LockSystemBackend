@@ -131,6 +131,7 @@ module.exports = {
         user = user[0];
 
         // Delete locks owned by user
+        console.log("Deleting references and locks:")
         var locks = Object.values(user.user_access);
         if (!locks) {
             console.log("Failed to delete user. User_access does not convert to array.");
@@ -138,14 +139,17 @@ module.exports = {
             return undefined;
         }
         for (var lockID of locks) {
+            console.log("ID: " + lockID);
             // Find every lock in the user_access array
             var currentLock = await Lock.find({ _id: lockID });
+            console.log(currentLock);
             if (currentLock.length == 0) continue;
             
             // if the user is the owner of the lock
             if (currentLock[0].owner == id) {
                 // go through every user with access to the lock
                 var users = Object.values(currentLock[0].lock_access);
+                console.log("Users in lock_access:\n" + users)
                 if (!users) continue;
                 for (var guestID of Object.values(currentLock[0].lock_access)) {
                     var currentUser = await User.find({ _id: guestID });
@@ -160,12 +164,15 @@ module.exports = {
                 }
 
                 // remove lock
+                console.log("Removing lock: " + currentLock[0]._id);
                 await Lock.findByIdAndRemove(currentLock[0]._id.toString());
             } 
             // if the user is not the owner of the lock
             else {
+                console.log("User is not owner of lock:\nLock_access pre: " + currentLock[0].lock_access);
                 // remove userid from locks lock_access array and save updates
-                currentLock[0].lock_access = currentLock[0].lock_access.filter(function (e) { return e !== user._id });
+                currentLock[0].lock_access = currentLock[0].lock_access.filter(function (e) { return e.toString() !== user._id.toString() });
+                console.log("Lock_access post: " + currentLock[0].lock_access);
                 await currentLock[0].save();
             }
         }
