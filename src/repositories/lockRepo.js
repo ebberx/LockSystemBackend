@@ -27,7 +27,7 @@ module.exports = {
     // Returns lock, undefined if failure
     Create: async function(req, res, ownerID) {
         var lock = new Lock(req.body);
-
+        console.log("Created temp lock:\n"+lock);
         // Check for required values
         if (lock.serial == null) {
             console.log("Failed to create lock. Wrong arguments supplied.");
@@ -50,6 +50,8 @@ module.exports = {
         lock.owner = owner[0]._id;
         lock.active = false;
         lock.save();
+
+        console.log("Created lock:\n"+lock);
         return lock;
     },
 

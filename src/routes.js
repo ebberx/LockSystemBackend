@@ -492,6 +492,7 @@ module.exports = function(app, ws) {
 
         // Return result
         res.status(201).json(lock);
+        console.log("Returned lock:\n" + lock);
     });
 
     //
