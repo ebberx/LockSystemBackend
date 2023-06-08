@@ -129,6 +129,13 @@ module.exports = function(app, ws) {
                 return;
             }
 
+            // Check if lock is blocked
+            if (blockedLocks.includes(lock[0]._id) == true) {
+                console.log("User {" + user[0]._id + "} tried to unlock lock {" + bodyData.lock_id + "}, but it is blocked.");
+                res.status(403).json("Lock is blocked.");
+                return;
+            }
+
             // Get similarity
             var similarity = await imageData.Verify(req, res, user[0]);
             if (similarity === undefined) return;
@@ -661,7 +668,7 @@ module.exports = function(app, ws) {
             var request = {
                 body: {
                     _id: req.body.lock_id,
-                    lock_access: lock[0].lock_access.filter(function (e) { return e.toString() !== decoded._id })
+                    lock_access: lock[0].lock_access.filter(function (e) { return e.toString() != decoded._id })
                 }
             }
             var newLock = await lockRepo.Update(request, res);
@@ -673,7 +680,7 @@ module.exports = function(app, ws) {
             var request = {
                 body: {
                     _id: decoded._id,
-                    user_access: user[0].user_access.filter(function (e) { return e.toString() !== lock[0]._id })
+                    user_access: user[0].user_access.filter(function (e) { return e.toString() != lock[0]._id })
                 }
             }
             var newUser = await userRepo.Update(request, res);
@@ -719,14 +726,54 @@ module.exports = function(app, ws) {
     // BLOCK ALL ACCESS
     //
     app.post('/api/v1/lock/block', async (req, res) => {
-        res.status(500).json("Not implemented yet.");
+        // Debug
+        console.log("[Lock:Block]");
+
+        // Token jazz
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Get lock in question
+        const lock = await lockRepo.Get(res, req.body.lock_id);
+        if (lock === undefined) return;
+
+        // If not admin and not owner, do not block
+        if (decoded.is_admin === false && lock[0].owner.toString() != decoded._id.toString()) {
+            console.log("User {" + decoded._id + "} tried to block lock {" + lock[0]._id + "}, but does not have the rights to do so.");
+            res.status(403).json("Invalid rights.");
+            return;
+        }
+
+        // Add lock to blocked locks
+        blockedLocks.push(lock[0]._id);
+        res.status(204).send();
     })
 
     //
     // UNLOCK ALL ACCESS
     // 
     app.post('/api/v1/lock/unblock', async (req, res) => {
-        res.status(500).json("Not implemented yet.");
+        // Debug
+        console.log("[Lock:Unblock]");
+
+        // Token jazz
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Get lock in question
+        const lock = await lockRepo.Get(res, req.body.lock_id);
+        if (lock === undefined) return;
+
+        // If not admin and not owner, do not block
+        if (decoded.is_admin === false && lock[0].owner.toString() != decoded._id.toString()) {
+            console.log("User {" + decoded._id + "} tried to unblock lock {" + lock[0]._id + "}, but does not have the rights to do so.");
+            res.status(403).json("Invalid rights.");
+            return;
+        }
+
+        // Remove lock from blocked locks
+        blockedLocks = blockedLocks.filter(function (e) { return e.toString() != lock[0]._id.toString() });
+        res.status(204).send();
     })
     
     //////////////
