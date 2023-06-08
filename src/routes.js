@@ -990,6 +990,8 @@ module.exports = function(app, ws) {
         var user = await userRepo.Get(res, decoded._id);
         if (user === undefined) return;
 
+        // TODO: Check for admin priviliges.
+
         // Create lock and add to owner user_access
         const invite = await inviteRepo.Create(req, res);
         if (invite === undefined) return;
