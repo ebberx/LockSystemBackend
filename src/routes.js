@@ -659,6 +659,13 @@ module.exports = function(app, ws) {
         // Return result
         res.status(200).json("Successfully left lock");
     });
+
+    //
+    // Get All Logs for a Lock
+    //
+    app.get('/api/v1/lock/logs/:id', async (req, res) => {
+        res.status(500).json("Not implemented yet.");
+    })
     
     //////////////
     /// INVITE ///
@@ -978,8 +985,6 @@ module.exports = function(app, ws) {
     app.delete('/api/v1/invite', async(req, res) => {
         res.status(500).json("Not implemented yet.")
     });
-
-    /////////////
     /// DEBUG ///
     /////////////
     //
