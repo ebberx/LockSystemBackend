@@ -33,7 +33,7 @@ module.exports = {
         if (from === undefined && to !== undefined) {
             invite = await Invite.find({ to: to });
         } 
-        else if(to === undefined) {
+        else if(to === undefined && from !== undefined) {
             invite = await Invite.find({ from: from });
         } 
         else {
