@@ -110,7 +110,7 @@ module.exports = {
             user.encoding_path = paths.encoding_path;
         }
 
-        console.log(user)
+        console.log("user in [userRepo:Update]:\n" + user)
 
         await user.save();
         return user;

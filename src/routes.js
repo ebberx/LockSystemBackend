@@ -723,7 +723,7 @@ module.exports = function(app, ws) {
     });
     
     //
-    // Get from invite _id
+    // Get from invite _id (admin)
     //
     app.get('/api/v1/invite:id', async(req, res) => {
         // Debug
