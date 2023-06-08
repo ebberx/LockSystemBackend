@@ -1,9 +1,9 @@
-const Verify = require('./services/verification.js');
 const Token = require('./services/token.js');
 const imageData = require('./services/imageData.js');
 const userRepo = require('./repositories/userRepo.js');
 const lockRepo = require('./repositories/lockRepo.js');
 const inviteRepo = require('./repositories/inviteRepo.js')
+const logRepo = require('./repositories/logRepo.js');
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
 dotenv.config({'path': 'config/settings.env'});
@@ -664,7 +664,31 @@ module.exports = function(app, ws) {
     // Get All Logs for a Lock
     //
     app.get('/api/v1/lock/logs/:id', async (req, res) => {
-        res.status(500).json("Not implemented yet.");
+        // Debug
+        console.log("[Lock:GetLogs]");
+        console.log(req.params.id);
+
+        // Token jazz
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Get lock in question
+        const lock = await lockRepo.Get(res, req.params.id);
+        if (lock === undefined) return;
+
+        // If not admin and not owner, do not send
+        if (decoded.is_admin === false && lock[0].owner.toString() != decoded._id) {
+            console.log("User {" + decoded._id + "} tried getting logs for lock {" + lock[0]._id + "}, but does not have the rights to do so.");
+            res.status(403).json("Invalid rights.");
+            return;
+        }
+
+        // Get logs
+        const logs = await logRepo.Get(lock[0]._id, res);
+        if (logs === undefined) return;
+
+        // Return logs
+        res.status(200).json(logs);
     })
     
     //////////////
