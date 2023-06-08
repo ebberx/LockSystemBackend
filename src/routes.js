@@ -8,6 +8,7 @@ const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
 dotenv.config({'path': 'config/settings.env'});
 
+var blockedLocks = [];
 
 module.exports = function(app, ws) {
     /////////////////////
@@ -712,6 +713,20 @@ module.exports = function(app, ws) {
 
         // Return logs
         res.status(200).json(logs);
+    })
+
+    //
+    // BLOCK ALL ACCESS
+    //
+    app.post('/api/v1/lock/block', async (req, res) => {
+        res.status(500).json("Not implemented yet.");
+    })
+
+    //
+    // UNLOCK ALL ACCESS
+    // 
+    app.post('/api/v1/lock/unblock', async (req, res) => {
+        res.status(500).json("Not implemented yet.");
     })
     
     //////////////
