@@ -746,6 +746,7 @@ module.exports = function(app, ws) {
 
         // Add lock to blocked locks
         blockedLocks.push(lock[0]._id);
+        console.log(blockedLocks);
         res.status(204).send();
     })
 
@@ -773,6 +774,7 @@ module.exports = function(app, ws) {
 
         // Remove lock from blocked locks
         blockedLocks = blockedLocks.filter(function (e) { return e.toString() != lock[0]._id.toString() });
+        console.log(blockedLocks);
         res.status(204).send();
     })
     
@@ -1142,4 +1144,20 @@ module.exports = function(app, ws) {
     //     if (log === undefined) return;
     //     res.status(200).json(log);
     // });
+    
+    //
+    // Test get blockedLocks
+    //
+    app.get('/api/v1/debug/blockedLocks', async (req, res) => {
+        console.log("[Debug:BlockedLocks]");
+
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        if (decoded.is_admin == true) {
+            res.status(200).json(blockedLocks);
+        } else {
+            res.status(403).json("Invalid rights.");
+        }
+    })
 }
