@@ -719,7 +719,7 @@ module.exports = function(app, ws) {
         if (result === undefined) return;
 
         // Send invites
-        res.status(200).json(invite);
+        res.status(200).json(result);
     });
     
     //
