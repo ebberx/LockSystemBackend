@@ -1,5 +1,7 @@
 const ws = require('ws');
-// const lockRepo = require('../repositories/lockRepo.js');
+const logRepo = require('../repositories/logRepo.js');
+const lockRepo = require('../repositories/lockRepo.js');
+const userRepo = require('../repositories/userRepo.js');
 
 class WebSocketService {
     constructor(server) {
@@ -18,7 +20,7 @@ class WebSocketService {
         })
     }
 
-    Unlock(req, res) {
+    async Unlock(req, res) {
         const lockSerial = req.serial;
         const message = req.rpi_message;
 
@@ -26,6 +28,21 @@ class WebSocketService {
             this.sockets.get(lockSerial).send(message);
             return true;
         }
+
+        const lock = await lockRepo.Get(res, req.body.lock_id);
+        if (lock === undefined) return;
+
+        const caller = await userRepo.Get(res, req.body.user_id);
+        if (caller === undefined) return;
+
+        const logRequest = {
+            body: {
+                lock: lock[0]._id,
+                message: caller[0].email + " unsuccessfully tried to open lock " + lock[0].name,
+            }
+        }
+        const log = await logRepo.Create(logRequest, res);
+        if (log === undefined) return;
         
         res.status(400).json("Lock not online.");
         return false;

@@ -110,9 +110,20 @@ module.exports = function(app, ws) {
             const lock = await lockRepo.Get(res, bodyData.lock_id);
             if (lock === undefined) return;
 
+            var logRequest = {
+                body: {
+                    lock: lock[0]._id
+                }
+            }
+
             // Check if user has access to lock
             if (lock[0].owner.toString() != user[0]._id.toString() && lock[0].lock_access.includes(user[0]._id) == false) {
                 console.log("User {" + user[0]._id + "} tried to unlock lock {" + bodyData.lock_id + "}, but does not have access.");
+
+                logRequest.body.message = user[0].email + " unsuccesfully tried to open lock " + lock[0].name;
+                const log = await logRepo.Create(logRequest, res);
+                if (log === undefined) return;
+
                 res.status(400).json("Invalid rights.");
                 return;
             }
@@ -123,11 +134,21 @@ module.exports = function(app, ws) {
 
             // Handle similarity
             if (similarity >= 0.92) {
+                req.user_id = decoded._id;
                 req.serial = lock[0].serial;
                 req.rpi_message = '{"action": "unlock", "args": {"caller": "' + decoded._id + '"}}'
-                if (ws.Unlock(req, res) == false) return;
+                if (await ws.Unlock(req, res) == false) return;
+                
+                logRequest.body.message = user[0].email + " successfully opened lock " + lock[0].name;
+                const log = await logRepo.Create(logRequest, res);
+                if (log === undefined) return;
+
                 res.status(200).json("OK - Access granted");
             } else {
+                logRequest.body.message = user[0].email + " unsuccessfully tried to open lock " + lock[0].name;
+                const log = await logRepo.Create(logRequest, res);
+                if (log === undefined) return;
+
                 res.status(400).json("Failed to verify user.");
             }
         }
