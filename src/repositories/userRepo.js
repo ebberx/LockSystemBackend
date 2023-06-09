@@ -49,6 +49,9 @@ module.exports = {
             return undefined;
         } 
 
+        user.email = user.email.trim();
+        user.password = user.password.trim();
+
         const hash = await bcrypt.hash(user.password, process.env.SALT);
         user.email = user.email.toLowerCase();
         user.password = hash;

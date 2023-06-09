@@ -31,7 +31,8 @@ module.exports = function(app, ws) {
             return;
         }
 
-        loginData.email = loginData.email.toLowerCase();
+        loginData.email = loginData.email.toLowerCase().trim();
+        loginData.password = loginData.password.trim();
 
         // Query for the user
         const user = await userRepo.GetFromMail(res, loginData.email);
