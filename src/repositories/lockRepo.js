@@ -15,7 +15,7 @@ module.exports = {
         }
 
         // Deal with potential null values
-        if (lock === null) {
+        if (lock.length === 0) {
             console.log("Failed to find lock with id: " + id);
             res.status(400).json("Failed to find lock/s.");
             return undefined;
