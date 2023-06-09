@@ -467,7 +467,7 @@ module.exports = function(app, ws) {
         }
 
         // return lock
-        res.status(200).json(lock);
+        res.status(200).json(lock[0]);
     });
 
     //
