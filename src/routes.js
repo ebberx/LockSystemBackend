@@ -806,8 +806,23 @@ module.exports = function(app, ws) {
         var result = await inviteRepo.Get(res);
         if (result === undefined) return;
 
+        // Get data need to form reply
+        const userFrom = userRepo.Get(res, result[0].from);
+        if(userFrom === undefined) return;
+        const userTo = userRepo.Get(res, result[0].to);
+        if(userTo === undefined) return;
+        const lock = lockRepo.Get(res, result[0].lock_id);
+        if(lock === undefined) return;
+
+        const reply = {
+            result,
+            userFrom: userFrom,
+            userTo: userTo,
+            lock: lock
+        }
+
         // Send invites
-        res.status(200).json(result);
+        res.status(200).json(reply);
     });
     
     //
