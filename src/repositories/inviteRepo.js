@@ -60,11 +60,11 @@ module.exports = {
         }
 
         // Find invite
-        var invite = await Invite.find({ lock: lockID });
+        var invite = await Invite.find({ lock_id: lockID });
 
         // Deal with potential null values
         if (invite === null) {
-            console.log("Failed to find invite with id: " + id);
+            console.log("Failed to find invite with id: " + lockID);
             res.status(400).json("Failed to find invite/s.");
             return undefined;
         }
@@ -134,7 +134,7 @@ module.exports = {
         if (from === undefined) return undefined;
         const to = await userRepo.Get(res, req.body.to);
         if (to === undefined) return undefined;
-        const lock = lockRepo.Get(req.body.lock);
+        const lock = lockRepo.Get(req.body.lock_id);
         if(lock === undefined) return undefined;
 
 
@@ -143,8 +143,8 @@ module.exports = {
             invite.from = req.body.from;
         if (req.body.to != null)
             invite.to = req.body.to;
-        if (req.body.lock != null)
-            invite.lock = req.body.lock;
+        if (req.body.lock_id != null)
+            invite.lock = req.body.lock_id;
         if (req.body.date != null)
             invite.date = req.body.date;
         if (req.body.accepted != null)

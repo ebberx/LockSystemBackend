@@ -841,16 +841,16 @@ module.exports = function(app, ws) {
     //
     // Get from user or lock or both
     //
-    app.get('/api/v1/invite/:from/:to', async(req, res) => {
+    app.get('/api/v1/invite/search/:to', async(req, res) => {
         // Debug
-        console.log("[Invite:GetByFromTo]");
+        console.log("[Invite:GetByTo]");
 
         // Get and verify token
         const decoded = Token.VerifyToken(req, res);
         if (decoded === undefined) return;
 
         // Get params
-        const from = req.params.from;
+        const from =undefined;
         const to = req.params.to;
 
         // Get desired invite(s)
@@ -965,7 +965,7 @@ module.exports = function(app, ws) {
         var data = { body: { 
             from: user[0]._id,
             to: toUser._id,
-            lock: lock[0]._id,
+            lock_id: lock[0]._id,
             date: Date.now(),
             accepted: false
         }};
@@ -1022,14 +1022,14 @@ module.exports = function(app, ws) {
             const userToUpdate = await userRepo.Get(res, invite[0].to);
             if(userToUpdate === undefined) return;
 
-            userToUpdate[0].user_access.push(invite[0].lock);
+            userToUpdate[0].user_access.push(invite[0].lock_id);
             const userToUpdateData = { body: {
                 user_access: userToUpdate[0].user_access
             }};
             if(await userRepo.Update(userToUpdateData, res, invite[0].to) === undefined) return;
 
             // Update lock_access on the lock to include the user that was invited
-            const lockToUpdate = await lockRepo.Get(res, invite[0].lock);
+            const lockToUpdate = await lockRepo.Get(res, invite[0].lock_id);
             if(lockToUpdate === undefined) return;
 
             lockToUpdate[0].lock_access.push(invite[0].to);
