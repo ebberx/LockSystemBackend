@@ -380,7 +380,7 @@ module.exports = function(app, ws) {
     //
     // Delete
     //
-    app.delete('/api/v1/user', async (req, res) => {
+    app.delete('/api/v1/user/:id', async (req, res) => {
         // Debug
         console.log("[User:Delete]");
 
@@ -389,15 +389,15 @@ module.exports = function(app, ws) {
         if (decoded === undefined) return;
 
         // Verify caller is allowed to delete specified user
-        if (req.body._id === undefined) req.body._id = decoded._id;
-        if (decoded.is_admin === false && req.body._id != decoded._id) {
-            console.log("Non admin user {" + decoded._id + "} tried to delete user {" + req._id + "}");
+        if (req.params.id === undefined) req.params.id = decoded._id;
+        if (decoded.is_admin === false && req.params.id != decoded._id) {
+            console.log("Non admin user {" + decoded._id + "} tried to delete user {" + req.params.id + "}");
             res.status(403).json("Invalid rights.");
             return;
         }
 
         // Delete user
-        const user = userRepo.Delete(req, res);
+        const user = userRepo.Delete(req, res, req.params.id);
         if (user === undefined) return;
 
         // Return result
@@ -569,7 +569,7 @@ module.exports = function(app, ws) {
     //
     // Delete
     //
-    app.delete('/api/v1/lock', async (req, res) => {
+    app.delete('/api/v1/lock/:id', async (req, res) => {
         // Debug
         console.log("[Lock:Delete]");
 
@@ -577,21 +577,28 @@ module.exports = function(app, ws) {
         const decoded = Token.VerifyToken(req, res);
         if (decoded === undefined) return;
 
+        // Make sure ID is supplied
+        if(req.params.id === undefined) {
+            res.status(400).json("ID not supplied.");
+            console.log("ID not supplied.");
+            return;
+        }
+
         // Verify caller is allowed to delete specified lock
         var lock;
         if (decoded.is_admin === false) {
-            lock = await lockRepo.Get(res, req.body._id);
+            lock = await lockRepo.Get(res, req.params.id);
             if (lock === undefined) return;
             lock = lock[0];
             if (decoded._id != lock.owner.toString()) {
-                console.log("Non admin user {" + decoded._id + "} tried to delete lock {" + lock._id + "}");
+                console.log("Non admin user {" + decoded._id + "} tried to delete lock {" + req.params.id + "}");
                 res.status(403).json("Invalid rights.");
                 return;
             }
         }
 
         // Delete lock
-        lock = await lockRepo.Delete(req, res);
+        lock = await lockRepo.Delete(req, res, req.params.id);
         if (lock === undefined) return;
 
         // Return result
@@ -806,13 +813,12 @@ module.exports = function(app, ws) {
         var result = await inviteRepo.Get(res);
         if (result === undefined) return;
 
+        
         // Get data need to form reply
         const userFrom = userRepo.Get(res, result[0].from);
         if(userFrom === undefined) return;
         const userTo = userRepo.Get(res, result[0].to);
         if(userTo === undefined) return;
-        const lock = lockRepo.Get(res, result[0].lock_id);
-        if(lock === undefined) return;
 
         const reply = {
             result,
