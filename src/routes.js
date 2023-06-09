@@ -1139,7 +1139,6 @@ module.exports = function(app, ws) {
         }
 
         // Verify caller is allowed to delete specified invite
-        var invite;
         if (decoded.is_admin === false) {
             console.log("Non admin user {" + decoded._id + "} tried to delete invite {" + req.params.id + "}");
             res.status(403).json("Invalid rights.");
@@ -1147,10 +1146,10 @@ module.exports = function(app, ws) {
         }
 
         // Delete invite
-        invite = await inviteRepo.Delete(req, res, req.params.id);
-        if (lock === undefined) return;
+        const result = await inviteRepo.Delete(req, res, req.params.id);
+        if (result === undefined) return;
 
-        res.status(204).send();
+        res.status(200).json(result);
     });
 
     /////////////
