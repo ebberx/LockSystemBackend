@@ -810,21 +810,23 @@ module.exports = function(app, ws) {
         }
 
         // Get invites
-        var result = await inviteRepo.Get(res);
-        if (result === undefined) return;
+        var results = await inviteRepo.Get(res);
+        if (results === undefined) return;
 
-        
-        // Get data need to form reply
-        const userFrom = userRepo.Get(res, result[0].from);
-        if(userFrom === undefined) return;
-        const userTo = userRepo.Get(res, result[0].to);
-        if(userTo === undefined) return;
+        var reply = [];
 
-        const reply = {
-            result,
-            userFrom: userFrom,
-            userTo: userTo,
-            lock: lock
+        for(const result in results) {
+            // Get emails for 'from' and 'to' fields
+            const userFrom = userRepo.Get(res, result.from);
+            if(userFrom === undefined) {
+                console.log("Failed to find 'from' user for invite {" + result._id + "}");
+            }
+            const userTo = userRepo.Get(res, result.to);
+            if(userTo === undefined) {
+                console.log("Failed to find 'to' user for invite {" + result._id + "}");
+            };
+            data = { invite: result, fromEmail: userFrom[0].email, toEmail: userTo[0].email }
+            reply.push(data)
         }
 
         // Send invites
