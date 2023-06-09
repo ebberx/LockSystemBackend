@@ -841,16 +841,16 @@ module.exports = function(app, ws) {
     //
     // Get from user or lock or both
     //
-    app.get('/api/v1/invite/:from/:to', async(req, res) => {
+    app.get('/api/v1/invite/search/:to', async(req, res) => {
         // Debug
-        console.log("[Invite:GetByFromTo]");
+        console.log("[Invite:GetByTo]");
 
         // Get and verify token
         const decoded = Token.VerifyToken(req, res);
         if (decoded === undefined) return;
 
         // Get params
-        const from = req.params.from;
+        const from =undefined;
         const to = req.params.to;
 
         // Get desired invite(s)
