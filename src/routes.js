@@ -447,6 +447,11 @@ module.exports = function(app, ws) {
     app.get('/api/v1/lock/:id', async (req, res) => {
         // Debug
         console.log("[Lock:GetSingle]");
+        console.log(req.params.id);
+        if (req.params.id == "logs") {
+            res.status(400).json("Please provide a lock id.");
+            return;
+        }
 
         // Get and verify token
         const decoded = Token.VerifyToken(req, res);
@@ -691,9 +696,6 @@ module.exports = function(app, ws) {
         res.status(200).json("Successfully left lock");
     });
 
-    //
-    // Get All Logs for a Lock
-    //
     app.get('/api/v1/lock/logs/:id', async (req, res) => {
         // Debug
         console.log("[Lock:GetLogs]");
