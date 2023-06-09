@@ -1096,11 +1096,41 @@ module.exports = function(app, ws) {
     });
 
     //
-    // Delete
+    // Delete an invite ID
     //
-    app.delete('/api/v1/invite', async(req, res) => {
-        res.status(500).json("Not implemented yet.")
+    app.delete('/api/v1/invite/:id', async(req, res) => {
+        
+        // Debug
+        console.log("[Invite:Delete]");
+        console.log(req.params.id);
+
+        // Verify token and ensure token data return
+        const decoded = Token.VerifyToken(req, res);
+        if (decoded === undefined) return;
+
+        // Make sure id is supplied
+        if(req.params.id === undefined) {
+            res.status(403).json("No ID specified.");
+            console.log("No ID specified.");
+            return;
+        }
+
+        // Verify caller is allowed to delete specified invite
+        var invite;
+        if (decoded.is_admin === false) {
+            console.log("Non admin user {" + decoded._id + "} tried to delete invite {" + req.params.id + "}");
+            res.status(403).json("Invalid rights.");
+            return;
+        }
+
+        // Delete invite
+        invite = await inviteRepo.Delete(req, res, req.params.id);
+        if (lock === undefined) return;
+
+        res.status(204).send();
     });
+
+    /////////////
     /// DEBUG ///
     /////////////
     //
