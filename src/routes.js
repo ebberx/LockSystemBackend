@@ -815,13 +815,13 @@ module.exports = function(app, ws) {
 
         var reply = [];
 
-        for(const result in results) {
+        for(const result of results) {
             // Get emails for 'from' and 'to' fields
-            const userFrom = userRepo.Get(res, result.from);
+            const userFrom = await userRepo.Get(res, result.from);
             if(userFrom === undefined) {
                 console.log("Failed to find 'from' user for invite {" + result._id + "}");
             }
-            const userTo = userRepo.Get(res, result.to);
+            const userTo = await userRepo.Get(res, result.to);
             if(userTo === undefined) {
                 console.log("Failed to find 'to' user for invite {" + result._id + "}");
             };
