@@ -120,9 +120,8 @@ module.exports = {
     },
 
     // Returns lock if success, undefined if failure
-    Delete: async function(req, res) {
+    Delete: async function(req, res, id) {
         // Get id and find lock
-        const id = req.body._id;
         var lock = await Lock.find({ _id: id });
 
         // Verify lock found
