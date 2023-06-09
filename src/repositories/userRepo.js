@@ -93,7 +93,7 @@ module.exports = {
             user.name = req.body.name;
 
         if (req.body.password != null)
-            user.password = req.body.password;
+            user.password = await bcrypt(req.body.password, process.env.SALT);
 
         if (req.body.verified != null)
             user.verified = req.body.verified;
