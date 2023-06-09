@@ -689,7 +689,7 @@ module.exports = function(app, ws) {
                     user_access: user[0].user_access.filter(function (e) { return e.toString() != lock[0]._id })
                 }
             }
-            var newUser = await userRepo.Update(request, res);
+            var newUser = await userRepo.Update(request, res, decoded._id);
             if (newUser === undefined) return;
         }
 
