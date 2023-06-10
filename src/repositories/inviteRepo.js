@@ -90,7 +90,7 @@ module.exports = {
         if (to === undefined) return undefined;
 
         // Check if the lock exists
-        const lock = await lockRepo.Get(res, invite.lock);
+        const lock = await lockRepo.Get(res, invite.lock_id);
         if(lock === undefined) return undefined;
 
         // Check that the from user is the owner of the lock

@@ -968,6 +968,7 @@ module.exports = function(app, ws) {
         // Get sending user
         var user = await userRepo.Get(res, decoded._id);
         if (user === undefined) return;
+        console.log("User: " + user[0]);
 
         // Check if toEmail is supplied
         if(req.body.toEmail === undefined || req.body.lock_id === undefined) {
@@ -979,10 +980,12 @@ module.exports = function(app, ws) {
         // Find user with the email toEmail
         var toUser = await userRepo.GetFromMail(res, req.body.toEmail);
         if (toUser === undefined) return;
+        console.log("ToUser: " + toUser);
 
         // Find lock
         const lock = await lockRepo.Get(res, req.body.lock_id);
         if(lock === undefined) return;
+        console.log("Lock: " + lock[0]);
 
         // Construct invite
         var data = { body: { 
