@@ -11,6 +11,7 @@ module.exports = {
     VerifyToken: function (req, res) {
         const token = req.headers.token;
 
+        console.log("Verifying token:\n" + token);
         if (!token) {
             console.log("No token provided.");
             res.status(403).send("User does not have access.");
