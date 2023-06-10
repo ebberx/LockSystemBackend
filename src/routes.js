@@ -883,26 +883,26 @@ module.exports = function(app, ws) {
         // Guard clause
         if(result.length === 0) {
             console.log("No invites was found for the given params");
-            res.status(403).json("Invalid rights.");
+            res.status(400).json("No results.");
             return;
         }
 
-        // If not admin
-        if (decoded.is_admin === false) {
-            // if user is not owner of the invite, remove from results
-            for(i = 0; i < result.length; i++) {
-                if (decoded._id !== result[i].from) {
-                    result[i] = undefined;
-                }
-            }
-
-            // If no results are left, return invalid rights
-            if(result.length === 0) {
-                console.log("User {" + decoded._id + "} tried to access invite(s) with params from: " + from + " | to: " + to);
-                res.status(403).json("Invalid rights.");
-                return;
-            }
-        }
+        // // If not admin
+        // if (decoded.is_admin === false) {
+        //     // if user is not owner of the invite, remove from results
+        //     for(i = 0; i < result.length; i++) {
+        //         if (decoded._id !== result[i].from) {
+        //             result[i] = undefined;
+        //         }
+        //     }
+        //
+        //     // If no results are left, return invalid rights
+        //     if(result.length === 0) {
+        //         console.log("User {" + decoded._id + "} tried to access invite(s) with params from: " + from + " | to: " + to);
+        //         res.status(403).json("Invalid rights.");
+        //         return;
+        //     }
+        // }
         res.status(200).json(result);
     });
 
