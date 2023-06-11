@@ -29,25 +29,25 @@ module.exports = {
         if(from === undefined && to === undefined) return undefined;
         
         // Find invite
-        var invite;
+        var invites;
         if (from === undefined && to !== undefined) {
-            invite = await Invite.find({ to: to });
+            invites = await Invite.find({ to: to }).lean();
         } 
         else if(to === undefined && from !== undefined) {
-            invite = await Invite.find({ from: from });
+            invites = await Invite.find({ from: from });
         } 
         else {
-            invite = await Invite.find({ from: from, to: to });
+            invites = await Invite.find({ from: from, to: to });
         }
 
         // Deal with potential null values
-        if (invite === null) {
+        if (invites === null) {
             console.log("Failed to find invite with id: " + id);
             res.status(400).json("Failed to find invite/s.");
             return undefined;
         }
 
-        return invite;
+        return invites;
     },
 
     // Get invite based on the lock ID

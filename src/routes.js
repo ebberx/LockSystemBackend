@@ -887,22 +887,13 @@ module.exports = function(app, ws) {
             return;
         }
 
-        // // If not admin
-        // if (decoded.is_admin === false) {
-        //     // if user is not owner of the invite, remove from results
-        //     for(i = 0; i < result.length; i++) {
-        //         if (decoded._id !== result[i].from) {
-        //             result[i] = undefined;
-        //         }
-        //     }
-        //
-        //     // If no results are left, return invalid rights
-        //     if(result.length === 0) {
-        //         console.log("User {" + decoded._id + "} tried to access invite(s) with params from: " + from + " | to: " + to);
-        //         res.status(403).json("Invalid rights.");
-        //         return;
-        //     }
-        // }
+        for (i = 0; i < result.length; i++) {
+            var lock = await lockRepo.Get(res, result[i].lock_id);
+            if (lock === undefined) return;
+
+            result[i].lock_name = lock[0].name;
+        }
+
         res.status(200).json(result);
     });
 
