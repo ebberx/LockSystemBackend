@@ -968,6 +968,9 @@ module.exports = function(app, ws) {
             return;
         }
 
+        // Convert to lowercase
+        req.body.toEmail = req.body.toEmail.toLowerCase();
+
         // Find user with the email toEmail
         var toUser = await userRepo.GetFromMail(res, req.body.toEmail);
         if (toUser === undefined) return;
