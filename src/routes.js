@@ -431,7 +431,13 @@ module.exports = function(app, ws) {
             console.log("Sent all lock data to admin.");
         } else {
             allLocks = [];
-            for (const lockID of user[0].user_access) {
+            const access = user[0].user_access;
+            if(access === null) {
+                res.status(200).json([]);
+                console.log("user_access was null.");
+                return;
+            }
+            for (const lockID of access) {
                 var lock = await lockRepo.Get(res, lockID);
                 if (lock === undefined) return;
                 allLocks.push(lock[0]);
